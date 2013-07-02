@@ -79,6 +79,17 @@
            ;####TODO!!!!
          }))
 
+(defn- visit-method
+  [class-info access name ^String desc signature exceptions]
+  (let [fixed-exception-names (vec (map fix-type-name exceptions))
+        existing-dependencies (:dependencies class-info)
+        argument-types        (vec (map #(.getClassName %) (org.objectweb.asm.Type/getArgumentTypes desc)))
+        return-type           (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+    (merge class-info
+           {
+             :dependencies (add-dependency (add-dependencies (add-dependencies existing-dependencies fixed-exception-names :uses) argument-types :uses) return-type :uses)
+           })))
+
 (defn class-info
   "Takes an input stream of class bytes and returns the dependencies it contains as a map with this shape:
 
@@ -117,6 +128,10 @@
                                   (visitField [access field-name desc signature value]
                                     (swap! result visit-field access field-name desc signature value)
                                     field-visitor)
+                                  (visitMethod [access name desc signature exceptions]
+                                    (swap! result visit-method access name desc signature exceptions)
+                                    ;method-visitor)
+                                    nil)
                            )]
     (.accept class-reader class-visitor 0)
     @result))
