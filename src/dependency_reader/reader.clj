@@ -98,7 +98,10 @@
 
 (defn- visit-inner-class
   [class-info name outer-name inner-name access]
-  )
+  (merge class-info
+         {
+           ;####TODO!!!!
+         }))
 
 (defn class-info
   "Takes an input stream of class bytes and returns the dependencies it contains as a map with this shape:
