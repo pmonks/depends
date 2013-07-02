@@ -24,14 +24,11 @@
 
 (defn- fix-type-name
   [^String name]
-  (.replaceAll name "/" "."))
+  (.replaceAll (.replaceAll name "/" ".") "\\[\\]" ""))
 
 (defn- fix-field-descriptor
   [^String field-descriptor]
-  (let [result (.getClassName (org.objectweb.asm.Type/getType field-descriptor))]
-    (if (.endsWith result "[]")   ; Trim array suffix - we don't differentiate between dependencies on arrays and the fundamental type
-      (.substring result 0 (- (.length result) 2))
-      result)))
+  (fix-type-name (.getClassName (org.objectweb.asm.Type/getType field-descriptor))))
 
 (defn- add-dependency
   [dependencies dependency type]
@@ -52,6 +49,14 @@
         (add-dependency result current-dependency type)
         (recur (add-dependency result current-dependency type) (first remaining-dependencies) (rest remaining-dependencies))))))
 
+(defn- typeof
+  [access]
+  (cond
+    (not= 0 (bit-and access org.objectweb.asm.Opcodes/ACC_INTERFACE))  :interface
+    (not= 0 (bit-and access org.objectweb.asm.Opcodes/ACC_ENUM))       :enum
+    (not= 0 (bit-and access org.objectweb.asm.Opcodes/ACC_ANNOTATION)) :annotation
+    :else                                                              :class))
+
 (defn- visit
   [class-info version access class-name signature super-name interfaces]
   (let [fixed-class-name      (fix-type-name class-name)
@@ -60,6 +65,7 @@
         existing-dependencies (:dependencies class-info)]
     (merge class-info
            { :name              fixed-class-name
+             :type              (typeof access)
              :class-version     version
              :class-version-str (version-name-map version)
              :dependencies      (add-dependency (add-dependencies existing-dependencies fixed-interface-names :implements)
@@ -83,12 +89,16 @@
   [class-info access name ^String desc signature exceptions]
   (let [fixed-exception-names (vec (map fix-type-name exceptions))
         existing-dependencies (:dependencies class-info)
-        argument-types        (vec (map #(.getClassName %) (org.objectweb.asm.Type/getArgumentTypes desc)))
-        return-type           (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+        argument-types        (vec (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc)))
+        return-type           (fix-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
     (merge class-info
            {
              :dependencies (add-dependency (add-dependencies (add-dependencies existing-dependencies fixed-exception-names :uses) argument-types :uses) return-type :uses)
            })))
+
+(defn- visit-inner-class
+  [class-info name outer-name inner-name access]
+  )
 
 (defn class-info
   "Takes an input stream of class bytes and returns the dependencies it contains as a map with this shape:
@@ -132,6 +142,8 @@
                                     (swap! result visit-method access name desc signature exceptions)
                                     ;method-visitor)
                                     nil)
+                                  (visitInnerClass [name outer-name inner-name access]
+                                    (swap! result visit-inner-class name outer-name inner-name access))
                            )]
     (.accept class-reader class-visitor 0)
     @result))
