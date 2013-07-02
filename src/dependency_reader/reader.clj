@@ -26,6 +26,13 @@
   [^String name]
   (.replaceAll name "/" "."))
 
+(defn- fix-field-descriptor
+  [^String field-descriptor]
+  (let [result (.getClassName (org.objectweb.asm.Type/getType field-descriptor))]
+    (if (.endsWith result "[]")   ; Trim array suffix - we don't differentiate between dependencies on arrays and the fundamental type
+      (.substring result 0 (- (.length result) 2))
+      result)))
+
 (defn- add-dependency
   [dependencies dependency type]
   (if (contains? dependencies dependency)
@@ -36,12 +43,14 @@
 
 (defn- add-dependencies
   [dependencies new-dependencies type]
-  (loop [result                 dependencies
-         current-dependency     (first new-dependencies)
-         remaining-dependencies (rest  new-dependencies)]
-    (if (empty? remaining-dependencies)
-      (add-dependency result current-dependency type)
-      (recur (add-dependency result current-dependency type) (first remaining-dependencies) (rest remaining-dependencies)))))
+  (if (or (empty? new-dependencies) (nil? new-dependencies))
+    dependencies
+    (loop [result                 dependencies
+           current-dependency     (first new-dependencies)
+           remaining-dependencies (rest  new-dependencies)]
+      (if (empty? remaining-dependencies)
+        (add-dependency result current-dependency type)
+        (recur (add-dependency result current-dependency type) (first remaining-dependencies) (rest remaining-dependencies))))))
 
 (defn- visit
   [class-info version access class-name signature super-name interfaces]
@@ -60,7 +69,14 @@
   [class-info access field-name desc signature value]
   (merge class-info
          {
-           :dependencies (add-dependency (:dependencies class-info) (.getClassName (org.objectweb.asm.Type/getType desc)) :uses)
+           :dependencies (add-dependency (:dependencies class-info) (fix-field-descriptor desc) :uses)
+         }))
+
+(defn- visit-annotation
+  [class-info name desc]
+  (merge class-info
+         {
+           ;####TODO!!!!
          }))
 
 (defn class-info
@@ -77,21 +93,31 @@
 
   The input stream is consumed, but _not_ closed."
   [^java.io.InputStream class-input-stream]
-  (let [result        (atom { :name              nil
-                              :type              nil
-                              :class-version     nil
-                              :class-version-str nil
-                              :dependencies      {} })
-        class-reader  (new org.objectweb.asm.ClassReader class-input-stream)
-        class-visitor (proxy [org.objectweb.asm.ClassVisitor] ; classes & interfaces
-                             [org.objectweb.asm.Opcodes/ASM4] ; constructor params
-                             ; Overridden functions
-                             (visit [version access class-name signature super-name interfaces]
-                               (swap! result visit version access class-name signature super-name interfaces))
-                             (visitField [access field-name desc signature value]
-                               (swap! result visit-field access field-name desc signature value)
-                               nil)
-                          )]
+  (let [result             (atom { :name              nil
+                                   :type              nil
+                                   :class-version     nil
+                                   :class-version-str nil
+                                   :dependencies      {} })
+        class-reader       (new org.objectweb.asm.ClassReader class-input-stream)
+        annotation-visitor (proxy [org.objectweb.asm.AnnotationVisitor]
+                                  [org.objectweb.asm.Opcodes/ASM4] ; constructor params
+                                  (visitAnnotation [name desc]
+                                    (swap! result visit-annotation name desc)
+                                    ;annotation-visitor))
+                                    nil))
+        field-visitor      (proxy [org.objectweb.asm.FieldVisitor]
+                                  [org.objectweb.asm.Opcodes/ASM4]
+                                  (visitAnnotation [desc visible]
+                                    annotation-visitor))
+        class-visitor      (proxy [org.objectweb.asm.ClassVisitor] ; classes & interfaces
+                                  [org.objectweb.asm.Opcodes/ASM4] ; constructor params
+                                  ; Overridden functions
+                                  (visit [version access class-name signature super-name interfaces]
+                                    (swap! result visit version access class-name signature super-name interfaces))
+                                  (visitField [access field-name desc signature value]
+                                    (swap! result visit-field access field-name desc signature value)
+                                    field-visitor)
+                           )]
     (.accept class-reader class-visitor 0)
     @result))
 
