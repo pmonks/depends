@@ -170,7 +170,14 @@
     @result))
 
 (defn class-info-from-file
-  "As per class-file, but takes a filename as a string."
-  [^String filename]
-  (with-open [class-input-stream (java.io.BufferedInputStream. (java.io.FileInputStream. filename))]
+  "As per class-file, but takes a file (either a java.io.File or a filename as a String)."
+  [file]
+  (with-open [class-input-stream (java.io.BufferedInputStream. (java.io.FileInputStream. file))]
     (class-info class-input-stream)))
+
+(defn classes-info
+  "Returns a vector of class infos for all .class files recursively in the given directory."
+  [directory]
+  (let [directory-as-file (if (= (class directory) "java.io.File") directory (io/file directory))
+        class-files       (filter #(and (.isFile %) (.canRead %) (.endsWith (.getName %) ".class")) (file-seq directory-as-file))]
+    (vec (map class-info-from-file class-files))))
