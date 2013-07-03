@@ -6,13 +6,19 @@ Reads dependencies from compiled Java code (.class files).
 
 Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
 
-## Running
+## Running / usage
 
-TODO!
+ lein run -- [arguments]
 
-## Usage:
+ Switches               Default  Desc                                                                            
+ --------               -------  ----                                                                            
+ -f, --file                      Print the dependencies for a single .class file.                                
+ -d, --directory                 Print the dependencies for all .class files recursively in the given directory. 
+ -h, --no-help, --help  false    Show help                                                                       
 
-TODO!
+ Args                   Desc
+ ----                   ----
+ file-or-directory-name The .class filename or directory containing .class files to print dependency information for.
 
 ## Developer Information
 

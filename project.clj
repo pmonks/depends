@@ -28,5 +28,5 @@
                    :plugins [
                               [lein-midje "3.0.1"]
                             ]}}
-;  :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
+  :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
   :main dependency-reader.core)

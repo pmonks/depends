@@ -21,16 +21,16 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (let [[options args banner] (cli args
-                                   ["-f" "--file"      "Print the dependencies for a single .class file." :default false]
-                                   ["-d" "--directory" "Print the dependencies for all .class files recursively in the given directory." :default false]
+                                   ["-f" "--file"      "Print the dependencies for a single .class file."]
+                                   ["-d" "--directory" "Print the dependencies for all .class files recursively in the given directory."]
                                    ["-h" "--help"      "Show help" :default false :flag true])]
     (let [file                   (:file      options)
           directory              (:directory options)
-          help                   (:help      options)
-          file-or-directory-name (first args)]
-      (if (or help (nil? file-or-directory-name))
+          help                   (:help      options)]
+      (if (or help
+              (and (nil? file) (nil? directory))
+              (and (not (nil? file)) (not (nil? directory))))
         (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n file-or-directory-name\tThe .class filename or directory containing .class files to print dependency information for.\n"))
         (cond
-          file      (pprint (dr/class-info-from-file file-or-directory-name))
-          directory (pprint (dr/classes-info file-or-directory-name))
-          :else     (println "wat?!?"))))))
+          (not (nil? file))      (pprint (dr/class-info-from-file file))
+          (not (nil? directory)) (pprint (dr/classes-info         directory)))))))
