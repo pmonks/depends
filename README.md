@@ -8,17 +8,19 @@ Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
 
 ## Running / usage
 
+```shell
  lein run -- [arguments]
+```
 
- Switches               Default  Desc                                                                            
- --------               -------  ----                                                                            
- -f, --file                      Print the dependencies for a single .class file.                                
- -d, --directory                 Print the dependencies for all .class files recursively in the given directory. 
- -h, --no-help, --help  false    Show help                                                                       
-
- Args                   Desc
- ----                   ----
- file-or-directory-name The .class filename or directory containing .class files to print dependency information for.
+    Switches               Default  Desc                                                                            
+    --------               -------  ----                                                                            
+    -f, --file                      Print the dependencies for a single .class file.                                
+    -d, --directory                 Print the dependencies for all .class files recursively in the given directory. 
+    -h, --no-help, --help  false    Show help                                                                       
+    
+    Args                   Desc
+    ----                   ----
+    file-or-directory-name The .class filename or directory containing .class files to print dependency information for.
 
 ## Developer Information
 
