@@ -9,7 +9,7 @@
 
 (ns dependency-reader.core
   (:require [clojure.string           :as s]
-            [dependency-reader.parser :as drp]
+            [dependency-reader.reader :as dr]
             [clojure.data.json        :as json])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
@@ -30,8 +30,11 @@
       (if (or (nil? source) help)
         (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tThe source to scan for .class files, to print dependency information for.\n"))
         (do
-          (.setArchiveDetector (net.java.truevfs.access.TConfig/current) (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp" (net.java.truevfs.comp.zipdriver.ZipDriver.)))
-          (let [result (drp/classes-info source)]
+          ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
+          (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
+                               (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
+                                                                          (net.java.truevfs.comp.zipdriver.ZipDriver.)))
+          (let [result (dr/classes-info source)]
             (if edn
               (pprint      result)
               (json/pprint result :escape-unicode false))
