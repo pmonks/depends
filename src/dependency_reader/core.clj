@@ -9,7 +9,7 @@
 
 (ns dependency-reader.core
   (:require [clojure.string           :as s]
-            [dependency-reader.reader :as drr]
+            [dependency-reader.parser :as drp]
             [clojure.data.json        :as json])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
@@ -29,11 +29,13 @@
           help   (:help options)]
       (if (or (nil? source) help)
         (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tThe source to scan for .class files, to print dependency information for.\n"))
-        (let [result (drr/classes-info source)]
-          (if edn
-            (pprint      result)
-            (json/pprint result :escape-unicode false))
-          (try
-            (net.java.truevfs.access.TVFS/umount)
-            (catch java.util.ServiceConfigurationError sce
-              (comment "Ignore this exception because TrueVFS is noisy as crap."))))))))
+        (do
+          (.setArchiveDetector (net.java.truevfs.access.TConfig/current) (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp" (net.java.truevfs.comp.zipdriver.ZipDriver.)))
+          (let [result (drp/classes-info source)]
+            (if edn
+              (pprint      result)
+              (json/pprint result :escape-unicode false))
+            (try
+              (net.java.truevfs.access.TVFS/umount)
+              (catch java.util.ServiceConfigurationError sce
+                (comment "Ignore this exception because TrueVFS is noisy as crap.")))))))))

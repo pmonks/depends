@@ -125,6 +125,9 @@
   [& args]
   (class (first args)))
 
+
+; Public functions start here
+
 (defmulti class-info
   "Returns the dependencies of the given class, as a map with this shape:
   {
@@ -198,3 +201,15 @@
   ([^java.lang.String file
     ^java.lang.String source]
   (class-info (net.java.truevfs.access.TFile. file) source)))
+
+(defn classes-info
+  "Returns the dependencies of all class files in the given location (which may be a file, a directory or an archive,
+   expressed as either a String or a java.io.File).
+   See dependency-reader.parser for the structure of each entry in the result vector."
+  [file-or-directory]
+  (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)]
+    (if (.isDirectory tfile-or-directory)
+      (let [listing      (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
+            class-files  (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)]
+          (vec (concat (map #(class-info % (.getPath %)) class-files))))
+      (conj [] (class-info tfile-or-directory (.getPath tfile-or-directory))))))
