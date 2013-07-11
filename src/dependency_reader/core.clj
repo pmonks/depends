@@ -9,7 +9,8 @@
 
 (ns dependency-reader.core
   (:require [clojure.string           :as s]
-            [dependency-reader.reader :as drr])
+            [dependency-reader.reader :as drr]
+            [clojure.data.json        :as json])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
   (:gen-class))
@@ -21,13 +22,18 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (let [[options args banner] (cli args
-                                   ["-h" "--help" "Show help" :default false :flag true])]
+                                   ["-e" "--edn"  "Produce EDN output instead of JSON (the default)" :flag true :default false]
+                                   ["-h" "--help" "Show help"                                        :flag true :default false])]
     (let [source (first args)
+          edn    (:edn  options)
           help   (:help options)]
       (if (or (nil? source) help)
         (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tThe source to scan for .class files, to print dependency information for.\n"))
-        (do
-          (pprint (drr/classes-info source))
+        (let [result (drr/classes-info source)]
+          (if edn
+            (pprint      result)
+            (json/pprint result :escape-unicode false))
           (try
             (net.java.truevfs.access.TVFS/umount)
-            (catch java.util.ServiceConfigurationError sce (comment "Ignore exceptions here"))))))))
+            (catch java.util.ServiceConfigurationError sce
+              (comment "Ignore this exception because TrueVFS is noisy as crap."))))))))

@@ -9,7 +9,7 @@
   </appender>
 
   <!-- Try to get TrueVFS to shut up - it's annoyingly noisy by default -->
-  <logger name="net.java" level="error"/>
+  <logger name="net.java" level="warn"/>
 
   <root level="debug">
     <appender-ref ref="STDOUT" />

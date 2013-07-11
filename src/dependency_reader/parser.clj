@@ -11,16 +11,18 @@
   (:require [clojure.tools.logging :as log]
             [clojure.java.io       :as io]))
 
-(def ^:private version-name-map {
-                                  45 "1.0 or 1.1",
-                                  46 "1.2",
-                                  47 "1.3",
-                                  48 "1.4",
-                                  49 "1.5",
-                                  50 "1.6",
-                                  51 "1.7",
-                                  52 "1.8"   ; Speculative!
-                                 })
+(def ^:private version-name-map
+  "Map of class version numbers to human readable equivalent."
+  {
+    45 "1.0 or 1.1",
+    46 "1.2",
+    47 "1.3",
+    48 "1.4",
+    49 "1.5",
+    50 "1.6",
+    51 "1.7",
+    52 "1.8"   ; Speculative!
+  })
 
 (defn- fix-type-name
   [^String type-name]
@@ -119,8 +121,7 @@
              :dependencies (add-dependency existing-dependencies fixed-local-variable-type :uses)
            })))
 
-; Well this is annoying...
-(defn- get-class
+(defn- class-of-first
   [& args]
   (class (first args)))
 
@@ -135,7 +136,7 @@
     :dependencies          {\"dependentTypeName\" #{:extends :implements :uses :inner-class :parent-class}
                             ...}
   }"
-  get-class)
+  class-of-first)
 
 (defmethod class-info java.io.InputStream
   ([^java.io.InputStream class-input-stream] (class-info class-input-stream nil))
@@ -193,7 +194,7 @@
      (class-info class-input-stream))))
 
 (defmethod class-info java.lang.String
-  ([^java.io.File file] (class-info file nil))
+  ([^java.lang.String file] (class-info file nil))
   ([^java.lang.String file
     ^java.lang.String source]
-  (class-info (java.io.File. file) source)))
+  (class-info (net.java.truevfs.access.TFile. file) source)))
