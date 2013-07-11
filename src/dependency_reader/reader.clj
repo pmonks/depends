@@ -203,7 +203,7 @@
   (class-info (net.java.truevfs.access.TFile. file) source)))
 
 (defn classes-info
-  "Returns the dependencies of all class files in the given location (which may be a file, a directory or an archive,
+  "Returns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive,
    expressed as either a String or a java.io.File).
    See dependency-reader.parser for the structure of each entry in the result vector."
   [file-or-directory]

@@ -28,7 +28,7 @@
           edn    (:edn  options)
           help   (:help options)]
       (if (or (nil? source) help)
-        (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tThe source to scan for .class files, to print dependency information for.\n"))
+        (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tReturns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive).\n"))
         (do
           ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
           (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
