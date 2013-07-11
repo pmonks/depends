@@ -1,6 +1,6 @@
 # dependency-reader
 
-Reads dependencies from compiled Java code (.class files).
+Reads dependencies from compiled Java code (.class files) and dumps them to stdout in [JSON](http://json.org/) or [EDN](https://github.com/edn-format/edn) format.
 
 ## Installation
 
@@ -9,7 +9,9 @@ Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
 ## Running / usage
 
 ```shell
- lein run -- [arguments]
+ lein deps
+ # Wait while Maven downloads teh internetz
+ lein run -- [switches] source
 ```
 
     Switches               Default  Desc                                             
@@ -19,7 +21,7 @@ Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
 
     Args           Desc
     ----           ----
-    source         Returns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive).
+    source         Returns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive). Must be provided.
 
 ## Developer Information
 
