@@ -20,6 +20,7 @@
                   [org.clojure/tools.cli "0.2.2"]
                   [org.clojure/tools.trace "0.7.5"]
                   [org.clojure/tools.logging "0.2.6"]
+                  [clojurewerkz/neocons "1.1.0"]
                   [ch.qos.logback/logback-classic "1.0.13"]
                   [org.ow2.asm/asm "4.1"]
                   [net.java.truevfs/truevfs-kernel-impl "0.10.2"]  ; Ugh TrueVFS' dependencies are crap
@@ -35,5 +36,5 @@
                    :plugins [
                               [lein-midje "3.0.1"]
                             ]}}
-;  :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
+  :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
   :main dependency-reader.core)
