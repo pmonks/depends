@@ -28,6 +28,7 @@
                   [net.java.truevfs/truevfs-driver-file "0.10.2"]
                   [net.java.truevfs/truevfs-driver-zip "0.10.2"]
                   [net.java.truevfs/truevfs-driver-jar "0.10.2"]
+                  [lacij "0.8.1" :exclusions [org.clojure/clojure]]
                 ]
   :profiles {:dev {:dependencies [
                                    [midje "1.5.1"]

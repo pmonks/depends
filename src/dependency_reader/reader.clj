@@ -32,6 +32,16 @@
   [^String desc]
   (fix-type-name (.getClassName (org.objectweb.asm.Type/getType desc))))
 
+(defn- split-fqtypename
+  "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
+  [^String fqtypename]
+  (if (nil? fqtypename)
+    nil
+    (let [split-index (.lastIndexOf fqtypename ".")]
+      (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
+        [nil fqtypename]
+        [(subs fqtypename 0 split-index) (subs fqtypename (inc split-index))]))))
+
 (defn- add-dependency
   [dependencies dependency dependency-type]
   (if (contains? dependencies dependency)
@@ -57,16 +67,19 @@
     (not= 0 (bit-and access-bitmask org.objectweb.asm.Opcodes/ACC_INTERFACE))  :interface
     (not= 0 (bit-and access-bitmask org.objectweb.asm.Opcodes/ACC_ENUM))       :enum
     (not= 0 (bit-and access-bitmask org.objectweb.asm.Opcodes/ACC_ANNOTATION)) :annotation
-    :else                                                              :class))
+    :else                                                                      :class))
 
 (defn- visit
   [class-info version access-bitmask class-name signature super-name interfaces]
   (let [fixed-class-name      (fix-type-name class-name)
         fixed-super-name      (fix-type-name super-name)
         fixed-interface-names (vec (map fix-type-name interfaces))
-        existing-dependencies (:dependencies class-info)]
+        existing-dependencies (:dependencies class-info)
+        package-and-class     (split-fqtypename fixed-class-name)]
     (merge class-info
            { :name              fixed-class-name
+             :package           (first package-and-class)
+             :typename          (second package-and-class)
              :type              (typeof access-bitmask)
              :class-version     version
              :class-version-str (version-name-map version)
@@ -125,20 +138,22 @@
   [& args]
   (class (first args)))
 
-
 ; Public functions start here
 
 (defmulti class-info
   "Returns the dependencies of the given class, as a map with this shape:
   {
-    :name                  \"typeName\"
+    :name                  \"fully.qualified.typename\"
+    :package               \"package\"
+    :typename              \"typename\"
     :source                \"source\"
     :type                  :class OR :interface OR :annotation OR :enum
     :class-version         49
     :class-version-str     \"1.5\"
     :dependencies          {\"dependentTypeName\" #{:extends :implements :uses :inner-class :parent-class}
                             ...}
-  }"
+  }
+  All of these keys will be present in the map, however they may have empty or nil values."
   class-of-first)
 
 (defmethod class-info java.io.InputStream
@@ -146,6 +161,8 @@
   ([^java.io.InputStream class-input-stream
     ^java.lang.String    source]
    (let [result             (atom { :name              nil
+                                    :package           nil
+                                    :typename          nil
                                     :source            source
                                     :type              nil
                                     :class-version     nil
@@ -176,6 +193,7 @@
                                    (visitMethod [access-bitmask method-name desc signature exceptions]
                                      (swap! result visit-method access-bitmask method-name desc signature exceptions)
                                      method-visitor)
+; As mentioned above, visiting inner classes doesn't seem very useful
 ;                                   (visitInnerClass [inner-class-name outer-name inner-name access-bitmask]
 ;                                     (swap! result visit-inner-class inner-class-name outer-name inner-name access-bitmask))
                             )]
@@ -213,3 +231,70 @@
             class-files  (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)]
           (vec (concat (map #(class-info % (.getPath %)) class-files))))
       (conj [] (class-info tfile-or-directory (.getPath tfile-or-directory))))))
+
+
+; Functions for manipulating dependencies, after they've been constructed
+(defn nodes
+  "Returns the nodes (types) in the dependency graph, in this shape:
+  [
+    {
+      :id \"fully.qualified.typename\"
+      :data
+      {
+        :name                  \"fully.qualified.typename\"
+        :package               \"package\"
+        :typename              \"typename\"
+        :source                \"source\"
+        :type                  :class OR :interface OR :annotation OR :enum
+        :class-version         49
+        :class-version-str     \"1.5\"
+      }
+    }
+    ...
+  ]
+  This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
+  one containing nodes and the other edges)."
+  [dependencies]
+  (vec (map #({ :id   (:name %)
+                :data { :name              (:name              %)
+                        :package           (:package           %)
+                        :typename          (:typename          %)
+                        :source            (:source            %)
+                        :type              (:type              %)
+                        :class-version     (:class-version     %)
+                        :class-version-str (:class-version-str %)
+                      }}) dependencies)))
+
+(defn- get-edge-2
+  [source dependency]
+  (let [target           (key dependency)
+        dependency-types (val dependency)]
+    (map #({ :source source
+             :target target
+             :type   % }) dependency-types)))
+
+(defn- get-edge
+  [type-info]
+  (let [source       (:name         type-info)
+        dependencies (:dependencies type-info)]
+    (map #(get-edge-2 source %) dependencies)))
+
+(defn edges
+  "Returns the edges (dependencies) in the dependency graph, in this shape:
+  [
+    {
+      :source \"sourceTypeName\"
+      :target \"targetTypeName\"
+      :type   :extends OR :implements OR :uses OR :inner-class OR :parent-class
+    }
+    ...
+  ]
+  This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
+  one containing nodes and the other edges)."
+  [dependencies]
+  (into [] (map get-edge dependencies)))
+
+(defn graph
+  "Returns a vector of two elements - the first containing the nodes of the dependency graph (see doc for nodes for details), the second the edges (see doc for edges for details)."
+  [classes-info]
+  [(nodes classes-info) (edges class-info)])
