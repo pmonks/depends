@@ -1,6 +1,6 @@
 # dependency-reader
 
-Reads dependencies from compiled Java code (.class files) and dumps them to stdout in [JSON](http://json.org/) or [EDN](https://github.com/edn-format/edn) format.
+Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
 ## Installation
 
@@ -13,11 +13,12 @@ Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
  # Wait while Maven downloads teh internetz
  lein run -- [switches] source
 ```
-
-    Switches               Default  Desc                                             
-    --------               -------  ----                                             
-    -e, --no-edn, --edn    false    Produce EDN output instead of JSON (the default) 
-    -h, --no-help, --help  false    Show help                                        
+    Switches               Default  Desc
+    --------               -------  ----
+    -j, --no-json, --json  false    Write JSON to stdout
+    -e, --no-edn, --edn    false    Write EDN to stdout
+    -n, --neo4j            false    Write to the specified Neo4J server
+    -h, --no-help, --help  false    Show help
 
     Args           Desc
     ----           ----

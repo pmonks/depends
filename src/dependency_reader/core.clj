@@ -23,10 +23,10 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (let [[options args banner] (cli args
-                                   ["-j" "--json"  "Produce JSON output (default)"                              :default false :flag true]
-                                   ["-e" "--edn"   "Produce EDN output instead of JSON"                         :default false :flag true]
-                                   ["-n" "--neo4j" "Write dependency information to the specified Neo4J server" :default false]
-                                   ["-h" "--help"  "Show help"                                                  :default false :flag true])
+                                   ["-j" "--json"  "Write JSON to stdout"                :default false :flag true]
+                                   ["-e" "--edn"   "Write EDN to stdout"                 :default false :flag true]
+                                   ["-n" "--neo4j" "Write to the specified Neo4J server" :default false]
+                                   ["-h" "--help"  "Show help"                           :default false :flag true])
         source                (first args)
         json                  (:json options)
         edn                   (:edn  options)
@@ -46,6 +46,7 @@
             (json/pprint dependencies :escape-unicode false))
           (if (not (empty? neo4j))
             (neo/write-class-dependencies-to-neo neo4j dependencies))
+          ; Don't forget to unmount TrueVFS
           (try
             (net.java.truevfs.access.TVFS/umount)
             (catch java.util.ServiceConfigurationError sce
