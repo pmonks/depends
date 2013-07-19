@@ -16,14 +16,13 @@
             [clojurewerkz.neocons.rest.batch         :as nb]
             [clojurewerkz.neocons.rest.cypher        :as cy]
             [clojurewerkz.neocons.rest.records       :as re]
-;            [trycypher.models.cypher                 :as tmc]
             ))
 
-(def ^:private neo4j-coordinates "http://localhost:7474/db/data/")
+(def ^:private default-neo4j-coordinates "http://localhost:7474/db/data/")
 
 (defn- setup
-  []
-  (nr/connect! neo4j-coordinates))
+  [neo4jserver]
+  (nr/connect! neo4jserver))
 
 (defn- create-node
   [type-info]
@@ -69,8 +68,9 @@
 
 (defn write-class-dependencies-to-neo
   "Writes class dependencies into a Neo4J database."
-  [dependencies]
-  (setup)
-  (let [nodes        (doall (map create-node dependencies))
-        dependencies (doall (map create-relationships dependencies))]
-  ))
+  ([dependencies] (write-class-dependencies-to-neo default-neo4j-coordinates dependencies))
+  ([neo4jserver dependencies]
+   (setup neo4jserver)
+   (let [nodes        (doall (map create-node dependencies))
+         dependencies (doall (map create-relationships dependencies))]
+   )))

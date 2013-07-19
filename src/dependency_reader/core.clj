@@ -8,9 +8,10 @@
 ;
 
 (ns dependency-reader.core
-  (:require [clojure.string           :as s]
-            [dependency-reader.reader :as dr]
-            [clojure.data.json        :as json])
+  (:require [clojure.string                :as s]
+            [dependency-reader.reader      :as dr]
+            [dependency-reader.neo4jwriter :as neo]
+            [clojure.data.json             :as json])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
   (:gen-class))
@@ -22,23 +23,31 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (let [[options args banner] (cli args
-                                   ["-e" "--edn"  "Produce EDN output instead of JSON (the default)" :flag true :default false]
-                                   ["-h" "--help" "Show help"                                        :flag true :default false])]
-    (let [source (first args)
-          edn    (:edn  options)
-          help   (:help options)]
-      (if (or (nil? source) help)
-        (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tReturns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive). Must be provided.\n"))
-        (do
-          ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
-          (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
-                               (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
-                                                                          (net.java.truevfs.comp.zipdriver.ZipDriver.)))
-          (let [result (dr/classes-info source)]
-            (if edn
-              (pprint      result)
-              (json/pprint result :escape-unicode false))
-            (try
-              (net.java.truevfs.access.TVFS/umount)
-              (catch java.util.ServiceConfigurationError sce
-                (comment "Ignore this exception because TrueVFS is noisy as crap.")))))))))
+                                   ["-j" "--json"  "Produce JSON output (default)"                              :default false :flag true]
+                                   ["-e" "--edn"   "Produce EDN output instead of JSON"                         :default false :flag true]
+                                   ["-n" "--neo4j" "Write dependency information to the specified Neo4J server" :default false]
+                                   ["-h" "--help"  "Show help"                                                  :default false :flag true])
+        source                (first args)
+        json                  (:json options)
+        edn                   (:edn  options)
+        neo4j                 (:neo4j  options)
+        help                  (:help options)]
+    (if (or help (nil? source))
+      (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tDetermines the dependencies of all class files in the given location (which may be a .class file, a directory or an archive). Must be provided.\n"))
+      (do
+        ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
+        (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
+                             (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
+                                                                        (net.java.truevfs.comp.zipdriver.ZipDriver.)))
+        (let [dependencies (dr/classes-info source)]
+          (if edn
+            (pprint dependencies))   ; Is this the right way to emit EDN?
+          (if json
+            (json/pprint dependencies :escape-unicode false))
+          (if (not (empty? neo4j))
+            (neo/write-class-dependencies-to-neo neo4j dependencies))
+          (try
+            (net.java.truevfs.access.TVFS/umount)
+            (catch java.util.ServiceConfigurationError sce
+              (comment "Ignore this exception because TrueVFS is noisy as crap.")))
+          nil)))))
