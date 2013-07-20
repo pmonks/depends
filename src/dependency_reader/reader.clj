@@ -294,7 +294,6 @@
   This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
   one containing nodes and the other edges)."
   [classes-info]
-  (println classes-info)
   (let [top-level-types (map #(hash-map :id   (:name %)  ; Not quite sure why map literal syntax doesn't work here...
                                         :data { :name              (:name              %)
                                                 :package           (:package           %)

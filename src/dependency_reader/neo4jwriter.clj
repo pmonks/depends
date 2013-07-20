@@ -20,74 +20,25 @@
 
 (def ^:private default-neo4j-coords "http://localhost:7474/db/data/")
 
-(defn- setup
-  [neo4j-coords]
-  (nr/connect! neo4j-coords))
+(defn- find-node-by-name
+  [name]
+  (nn/find-one "node_auto_index" "name" name))   ; Note: requires that auto-indexing of the "name" property be enabled.
 
-; DUPLICATED FROM reader.clj REFACTOR ASAP!!!!
-(defn- split-fqtypename
-  "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
-  [^String fqtypename]
-  (if (nil? fqtypename)
-    nil
-    (let [split-index (.lastIndexOf fqtypename ".")]
-      (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
-        [nil fqtypename]
-        [(subs fqtypename 0 split-index) (subs fqtypename (inc split-index))]))))
+(defn- create-node!
+  [node]
+  (nn/create (:data node)))
 
-; ####TODO: REFACTOR ALL THIS CRUD TO USE NODES AND EDGES FROM THE READER
-(defn- create-node
-  [type-info]
-  (let [fqtypename        (:name              type-info)
-        package           (:package           type-info)
-        typename          (:typename          type-info)
-        source            (:source            type-info)
-        type              (:type              type-info)
-        class-version     (:class-version     type-info)
-        class-version-str (:class-version-str type-info)
-        node              (nn/create { :name              fqtypename
-                                       :package           package
-                                       :typename          typename
-                                       :source            source
-                                       :type              type
-                                       :class-version     class-version
-                                       :class-version-str class-version-str })]
-    node))
-
-(defn- find-node-by-typename
-  [typename]
-  (nn/find-one "node_auto_index" "name" typename))   ; Note: requires that auto-indexing of the "name" property be enabled.
-
-(defn- find-or-create-node-by-typename
-  [fqtypename]
-  (let [node               (find-node-by-typename fqtypename)
-        [package typename] (split-fqtypename fqtypename)]
-    (if (nil? node)
-      (if (nil? package)
-        (nn/create { :name     fqtypename
-                     :typename typename })               ;#### TODO: Add "type" where possible!!
-        (nn/create { :name     fqtypename
-                     :package  package
-                     :typename typename }))
-      node)))
-
-(defn- create-relationship
-  [source relationship]
-  (let [source-node      (find-node-by-typename source)
-        target-node      (find-or-create-node-by-typename (first relationship))
-        dependency-types (second relationship)]
-    (doall (map #(nrl/create source-node target-node %) dependency-types))))
-
-(defn- create-relationships
-  [type-info]
-  (let [source       (:name         type-info)
-        dependencies (:dependencies type-info)]
-    (doall (map #(create-relationship source %) dependencies))))
+(defn- create-edge!
+  [edge]
+  (let [source-node (find-node-by-name (:source edge))
+        target-node (find-node-by-name (:target edge))
+        type        (:type edge)]
+    (nrl/create source-node target-node type)))
 
 (defn write-dependencies
   "Writes class dependencies into a Neo4J database."
-  ([dependencies] (write-dependencies default-neo4j-coords dependencies))
-  ([neo4j-coords dependencies]
-   (setup neo4j-coords)
-   (let [nodes        (doall (map create-node dependencies))
-         dependencies (doall (map create-relationships dependencies))])))
+  ([nodes edges] (write-dependencies default-neo4j-coords nodes edges))
+  ([neo4j-coords nodes edges]
+    (nr/connect! neo4j-coords)
+    (doall (map create-node! nodes))
+    (doall (map create-edge! edges))))

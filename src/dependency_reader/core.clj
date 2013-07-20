@@ -43,17 +43,16 @@
                              (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
                                                                         (net.java.truevfs.comp.zipdriver.ZipDriver.)))
         (let [dependencies    (dr/classes-info source)
-              ;nodes-and-edges (dr/nodes-edges  dependencies)]  ; ####TODO: REFACTOR CODE TO USE THIS!!!!
-              ]
+              nodes-and-edges (dr/nodes-and-edges dependencies)]
           (if edn
             (pprint dependencies))   ; Is this the right way to emit EDN?
           (if json
             (json/pprint dependencies :escape-unicode false))
           (if neo4j-coords
-            (neo/write-dependencies neo4j-coords dependencies))
+            (neo/write-dependencies neo4j-coords (first nodes-and-edges) (second nodes-and-edges)))
 ;          (if svg
 ;            (svg/write-dependencies dependencies))
-        )
+          nil)
         (finally  ; Don't forget to unmount TrueVFS
           (try
             (net.java.truevfs.access.TVFS/umount)
