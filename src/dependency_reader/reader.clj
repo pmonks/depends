@@ -24,6 +24,19 @@
     52 "1.8"   ; Speculative!
   })
 
+(def ^:private primitive-type-names
+  #{
+    "byte"
+    "short"
+    "int"
+    "long"
+    "float"
+    "double"
+    "boolean"
+    "char"
+    "void"
+    })
+
 (defn- fix-type-name
   [^String type-name]
   (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" ""))
@@ -147,7 +160,7 @@
     :package               \"package\"
     :typename              \"typename\"
     :source                \"source\"
-    :type                  :class OR :interface OR :annotation OR :enum
+    :type                  :class OR :interface OR :annotation OR :enum OR :primitive OR :unknown
     :class-version         49
     :class-version-str     \"1.5\"
     :dependencies          {\"dependentTypeName\" #{:extends :implements :uses :inner-class :parent-class}
@@ -234,6 +247,32 @@
 
 
 ; Functions for manipulating dependencies, after they've been constructed
+(defn- top-level-type?
+  [top-level-types type]
+  (boolean (some #(= (:id %) type) top-level-types)))
+
+(defn- in?
+  [val coll]
+  (boolean (some #(= val %) coll)))
+
+(defn- primitive-type?
+  [typename]
+  (in? typename primitive-type-names))
+
+(defn- dependent-type-to-node
+  [fqtypename]
+  (let [[package typename] (split-fqtypename fqtypename)]
+    (if package
+      { :id fqtypename
+        :data { :name     fqtypename
+                :package  package
+                :typename typename
+                :type     (if (primitive-type? fqtypename) :primitive :unknown) } }
+      { :id fqtypename
+        :data { :name     fqtypename
+                :typename typename
+                :type     (if (primitive-type? fqtypename) :primitive :unknown) } })))
+
 (defn nodes
   "Returns the nodes (types) in the dependency graph, in this shape:
   [
@@ -245,7 +284,7 @@
         :package               \"package\"
         :typename              \"typename\"
         :source                \"source\"
-        :type                  :class OR :interface OR :annotation OR :enum
+        :type                  :class OR :interface OR :annotation OR :enum OR :primitive OR :unknown
         :class-version         49
         :class-version-str     \"1.5\"
       }
@@ -254,30 +293,34 @@
   ]
   This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
   one containing nodes and the other edges)."
-  [dependencies]
-  (vec (map #({ :id   (:name %)
-                :data { :name              (:name              %)
-                        :package           (:package           %)
-                        :typename          (:typename          %)
-                        :source            (:source            %)
-                        :type              (:type              %)
-                        :class-version     (:class-version     %)
-                        :class-version-str (:class-version-str %)
-                      }}) dependencies)))
+  [classes-info]
+  (println classes-info)
+  (let [top-level-types (map #(hash-map :id   (:name %)  ; Not quite sure why map literal syntax doesn't work here...
+                                        :data { :name              (:name              %)
+                                                :package           (:package           %)
+                                                :typename          (:typename          %)
+                                                :source            (:source            %)
+                                                :type              (:type              %)
+                                                :class-version     (:class-version     %)
+                                                :class-version-str (:class-version-str %)
+                                              }) classes-info)
+        dependent-types (vec (set (flatten (map #(keys (:dependencies %)) classes-info))))  ; Dodgy deduping!!
+        unique-dependent-types (keep #(if (top-level-type? top-level-types %) nil %) dependent-types)]
+    (vec (into top-level-types (map dependent-type-to-node unique-dependent-types)))))
 
 (defn- get-edge-2
   [source dependency]
   (let [target           (key dependency)
         dependency-types (val dependency)]
-    (map #({ :source source
-             :target target
-             :type   % }) dependency-types)))
+    (map #(hash-map :source source
+                    :target target
+                    :type   %) dependency-types)))
 
 (defn- get-edge
-  [type-info]
-  (let [source       (:name         type-info)
-        dependencies (:dependencies type-info)]
-    (map #(get-edge-2 source %) dependencies)))
+  [class-info]
+  (let [source       (:name         class-info)
+        dependencies (:dependencies class-info)]
+    (flatten (map #(get-edge-2 source %) dependencies))))
 
 (defn edges
   "Returns the edges (dependencies) in the dependency graph, in this shape:
@@ -291,10 +334,10 @@
   ]
   This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
   one containing nodes and the other edges)."
-  [dependencies]
-  (into [] (map get-edge dependencies)))
+  [classes-info]
+  (into [] (flatten (map get-edge classes-info))))
 
-(defn nodes-edges
+(defn nodes-and-edges
   "Returns a vector of two elements - the first containing the nodes of the dependency graph (see doc for nodes for details), the second the edges (see doc for edges for details)."
   [classes-info]
-  [(nodes classes-info) (edges class-info)])
+  [(nodes classes-info) (edges classes-info)])

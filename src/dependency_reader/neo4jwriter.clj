@@ -59,14 +59,14 @@
   (nn/find-one "node_auto_index" "name" typename))   ; Note: requires that auto-indexing of the "name" property be enabled.
 
 (defn- find-or-create-node-by-typename
-  [typename]
-  (let [node               (find-node-by-typename typename)
-        [package typename] (split-fqtypename typename)]
+  [fqtypename]
+  (let [node               (find-node-by-typename fqtypename)
+        [package typename] (split-fqtypename fqtypename)]
     (if (nil? node)
       (if (nil? package)
-        (nn/create { :name     typename
-                     :typename typename })
-        (nn/create { :name     typename
+        (nn/create { :name     fqtypename
+                     :typename typename })               ;#### TODO: Add "type" where possible!!
+        (nn/create { :name     fqtypename
                      :package  package
                      :typename typename }))
       node)))
