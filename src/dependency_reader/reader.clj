@@ -75,11 +75,11 @@
         fixed-super-name      (fix-type-name super-name)
         fixed-interface-names (vec (map fix-type-name interfaces))
         existing-dependencies (:dependencies class-info)
-        package-and-class     (split-fqtypename fixed-class-name)]
+        [package typename]    (split-fqtypename fixed-class-name)]
     (merge class-info
            { :name              fixed-class-name
-             :package           (first package-and-class)
-             :typename          (second package-and-class)
+             :package           package
+             :typename          typename
              :type              (typeof access-bitmask)
              :class-version     version
              :class-version-str (version-name-map version)
@@ -294,7 +294,7 @@
   [dependencies]
   (into [] (map get-edge dependencies)))
 
-(defn graph
+(defn nodes-edges
   "Returns a vector of two elements - the first containing the nodes of the dependency graph (see doc for nodes for details), the second the edges (see doc for edges for details)."
   [classes-info]
   [(nodes classes-info) (edges class-info)])

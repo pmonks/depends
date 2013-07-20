@@ -18,12 +18,24 @@
             [clojurewerkz.neocons.rest.records       :as re]
             ))
 
-(def ^:private default-neo4j-coordinates "http://localhost:7474/db/data/")
+(def ^:private default-neo4j-coords "http://localhost:7474/db/data/")
 
 (defn- setup
-  [neo4jserver]
-  (nr/connect! neo4jserver))
+  [neo4j-coords]
+  (nr/connect! neo4j-coords))
 
+; DUPLICATED FROM reader.clj REFACTOR ASAP!!!!
+(defn- split-fqtypename
+  "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
+  [^String fqtypename]
+  (if (nil? fqtypename)
+    nil
+    (let [split-index (.lastIndexOf fqtypename ".")]
+      (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
+        [nil fqtypename]
+        [(subs fqtypename 0 split-index) (subs fqtypename (inc split-index))]))))
+
+; ####TODO: REFACTOR ALL THIS CRUD TO USE NODES AND EDGES FROM THE READER
 (defn- create-node
   [type-info]
   (let [fqtypename        (:name              type-info)
@@ -48,9 +60,15 @@
 
 (defn- find-or-create-node-by-typename
   [typename]
-  (let [node (find-node-by-typename typename)]
+  (let [node               (find-node-by-typename typename)
+        [package typename] (split-fqtypename typename)]
     (if (nil? node)
-      (nn/create { :name typename })
+      (if (nil? package)
+        (nn/create { :name     typename
+                     :typename typename })
+        (nn/create { :name     typename
+                     :package  package
+                     :typename typename }))
       node)))
 
 (defn- create-relationship
@@ -66,11 +84,10 @@
         dependencies (:dependencies type-info)]
     (doall (map #(create-relationship source %) dependencies))))
 
-(defn write-class-dependencies-to-neo
+(defn write-dependencies
   "Writes class dependencies into a Neo4J database."
-  ([dependencies] (write-class-dependencies-to-neo default-neo4j-coordinates dependencies))
-  ([neo4jserver dependencies]
-   (setup neo4jserver)
+  ([dependencies] (write-dependencies default-neo4j-coords dependencies))
+  ([neo4j-coords dependencies]
+   (setup neo4j-coords)
    (let [nodes        (doall (map create-node dependencies))
-         dependencies (doall (map create-relationships dependencies))]
-   )))
+         dependencies (doall (map create-relationships dependencies))])))
