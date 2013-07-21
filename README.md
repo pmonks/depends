@@ -9,6 +9,8 @@ Checkout the source from [GitHub](https://github.com/pmonks/depends).
 
 ## Running / usage
 
+For now depends is source only, so...
+
 ```shell
  lein deps
  # Wait while Maven downloads teh internetz
@@ -25,7 +27,9 @@ Checkout the source from [GitHub](https://github.com/pmonks/depends).
     ----           ----
     source         Returns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive). Must be provided.
 
-Examples:
+Eventually I plan to provide a precompiled executable uberjar as well.
+
+### Examples:
 ```shell
  # Parse a single .class file and write the dependencies to stdout in EDN format
  lein run -- -e /path/to/myclassfile.class
@@ -37,7 +41,7 @@ Examples:
  lein run -- -n http://localhost:7474/db/data/ /path/to/myjarfile.jar
 
  # Recursively parse all .class files in the specified EAR file (including those within JARs within WARs within the EAR) and don't write the results anywhere
- # Nonsensical, but possible
+ # Nonsensical, but possible (I'm too lazy to do proper command line argument validaton *sigh*)
  lein run -- /path/to/myenterpriseturdbucket.ear
 ```
 
