@@ -3,6 +3,12 @@
 
 Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
+Why might that be useful, I hear you ask?
+
+Welp the personal driver for this project was to support some work I was doing to validate 3rd party extensions to an open source Java product.  Basically I needed to make sure that that 3rd party code didn't use the product's private APIs, didn't attempt threading, didn't use Process.exec() or System.out/err, didn't employ dodgy ClassLoader tricks etc. etc.  I started out using grep but quickly ran into a couple of walls, including: a) not necessarily having access to the source code for these extensions; b) that approach requires manual followup due to Java's rather complex aliasing rules (e.g. is the code "new Thread()" referring to java.lang.Thread or org.sewing.Thread??).
+
+Note: I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre) practices.  Any comments, feedback, criticism is welcome (email address below).
+
 ## Installation
 
 Checkout the source from [GitHub](https://github.com/pmonks/depends).
