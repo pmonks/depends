@@ -1,5 +1,5 @@
 # depends
-![Depends](http://www.vamworld.com/file/view/depends.jpg/169661655/depends.jpg) "Because even adults need help dealing with sh*t from time to time."
+![Project Logo](https://github.com/pmonks/depends/wiki/images/depends.jpg)
 
 Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
