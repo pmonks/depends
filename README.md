@@ -5,7 +5,7 @@ Reads dependencies from compiled Java code (.class files) and writes them out in
 
 ## Installation
 
-Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
+Checkout the source from [GitHub](https://github.com/pmonks/depends).
 
 ## Running / usage
 
@@ -27,9 +27,9 @@ Checkout the source from [GitHub](https://github.com/pmonks/dependency-reader).
 
 ## Developer Information
 
-[GitHub project](https://github.com/pmonks/dependency-reader)
+[GitHub project](https://github.com/pmonks/depends)
 
-[Bug Tracker](https://github.com/pmonks/dependency-reader/issues)
+[Bug Tracker](https://github.com/pmonks/depends/issues)
 
 Continuous Integration: TODO!
 
