@@ -1,4 +1,5 @@
-# dependency-reader
+# depends
+![Depends](http://www.vamworld.com/file/view/depends.jpg/169661655/depends.jpg) "Because even adults need help dealing with sh*t from time to time."
 
 Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
