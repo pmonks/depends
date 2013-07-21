@@ -43,6 +43,10 @@ Eventually I plan to provide a precompiled executable uberjar as well.
  # Recursively parse all .class files in the specified EAR file (including those within JARs within WARs within the EAR) and don't write the results anywhere
  # Nonsensical, but possible (I'm too lazy to do proper command line argument validaton *sigh*)
  lein run -- /path/to/myenterpriseturdbucket.ear
+
+ # Recursively parse all .class files in the specified ZIP file (including any embedded JARs, WARs, EARs or ZIPs) and write the results to stdout in both EDN and JSON format, and to a Neo4J server running on another server
+ # Why anyone would actually want to do all this in one shot is beyond me...
+ lein run -- -e -j -n http://neo4j.veryimportantcompany.com:7474/db/data/ /path/to/yourzipisdown.zip
 ```
 
 ## Developer Information
