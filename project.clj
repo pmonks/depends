@@ -7,10 +7,10 @@
 ; Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 ;
 
-(defproject dependency-reader "0.1.0-SNAPSHOT"
+(defproject depends "0.1.0-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "Reads dependency information from compiled .class files."
-  :url "https://github.com/pmonks/dependency-reader"
+  :url "https://github.com/pmonks/depends"
   :license {:name "Creative Commons Attribution-ShareAlike 3.0 Unported License."
             :url "http://creativecommons.org/licenses/by-sa/3.0/"}
   :javac-target "1.7"
@@ -23,11 +23,11 @@
                   [clojurewerkz/neocons                 "1.1.0"]
                   [ch.qos.logback/logback-classic       "1.0.13"]
                   [org.ow2.asm/asm                      "4.1"]
-                  [net.java.truevfs/truevfs-kernel-impl "0.10.2"]  ; Ugh TrueVFS' dependencies are crap
-                  [net.java.truevfs/truevfs-access      "0.10.2"]
-                  [net.java.truevfs/truevfs-driver-file "0.10.2"]
-                  [net.java.truevfs/truevfs-driver-zip  "0.10.2"]
-                  [net.java.truevfs/truevfs-driver-jar  "0.10.2"]
+                  [net.java.truevfs/truevfs-kernel-impl "0.10.3"]  ; Ugh TrueVFS' dependencies are crap
+                  [net.java.truevfs/truevfs-access      "0.10.3"]
+                  [net.java.truevfs/truevfs-driver-file "0.10.3"]
+                  [net.java.truevfs/truevfs-driver-zip  "0.10.3"]
+                  [net.java.truevfs/truevfs-driver-jar  "0.10.3"]
                   [lacij                                "0.8.1" :exclusions [org.clojure/clojure]]
                 ]
   :profiles {:dev {:dependencies [
@@ -38,4 +38,4 @@
                               [lein-midje "3.0.1"]
                             ]}}
   :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
-  :main dependency-reader.core)
+  :main depends.core)

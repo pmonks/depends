@@ -7,12 +7,12 @@
 ; Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 ;
 
-(ns dependency-reader.core
-  (:require [clojure.string                :as s]
-            [dependency-reader.reader      :as dr]
-            [dependency-reader.neo4jwriter :as neo]
-            [dependency-reader.svgwriter   :as svg]
-            [clojure.data.json             :as json])
+(ns depends.core
+  (:require [clojure.string      :as s]
+            [depends.reader      :as dr]
+            [depends.neo4jwriter :as neo]
+            [depends.svgwriter   :as svg]
+            [clojure.data.json   :as json])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
   (:gen-class))

@@ -7,22 +7,22 @@
 ; Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 ;
 
-(ns dependency-reader.neo4jwriter
+;####TODO: Look at using the batch APIs instead of inserting everything one-at-a-time
+
+(ns depends.neo4jwriter
   (:require [clojure.tools.logging                   :as log]
             [clojure.java.io                         :as io]
             [clojurewerkz.neocons.rest               :as nr]
             [clojurewerkz.neocons.rest.nodes         :as nn]
             [clojurewerkz.neocons.rest.relationships :as nrl]
             [clojurewerkz.neocons.rest.batch         :as nb]
-            [clojurewerkz.neocons.rest.cypher        :as cy]
-            [clojurewerkz.neocons.rest.records       :as re]
             ))
 
 (def ^:private default-neo4j-coords "http://localhost:7474/db/data/")
 
 (defn- find-node-by-name
   [name]
-  (nn/find-one "node_auto_index" "name" name))   ; Note: requires that auto-indexing of the "name" property be enabled.
+  (nn/find-one "node_auto_index" "name" name))   ; Note: requires that auto-indexing of the "name" property be enabled in neo4j.properties.
 
 (defn- create-node!
   [node]

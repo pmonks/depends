@@ -7,7 +7,7 @@
 ; Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 ;
 
-(ns dependency-reader.reader
+(ns depends.reader
   (:require [clojure.tools.logging :as log]
             [clojure.java.io       :as io]))
 
