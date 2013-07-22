@@ -10,9 +10,9 @@ Welp the personal driver for this project was to support some work I was doing t
 To do this I'm jamming the output into Neo4J then running a couple of Cypher queries to determine if the code violates any of these rules.
 
 Other possible uses of the data this tool produces include:
-1. Visualising the dependencies of a code base (particularly one you're unfamiliar with)
-2. Calculating certains kinds of software quality metrics (note however that tools like Structure101 already do this kind of thing)
-3. Faffing by looking at shiny graphy baubles
+ 1. Visualising the dependencies of a code base (particularly one you're unfamiliar with)
+ 2. Calculating certains kinds of software quality metrics (note however that tools like Structure101 already do this kind of thing)
+ 3. Faffing by looking at shiny graphy baubles
 
 Note: I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre) practices.  Any comments, feedback, criticism is welcome (email address below).
 
