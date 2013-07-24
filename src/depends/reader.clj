@@ -9,7 +9,8 @@
 
 (ns depends.reader
   (:require [clojure.tools.logging :as log]
-            [clojure.java.io       :as io]))
+            [clojure.java.io       :as io]
+            [clojure.set           :as set]))
 
 (def ^:private version-name-map
   "Map of class version numbers to human readable equivalent."
@@ -37,6 +38,11 @@
     "void"
     })
 
+(defn- in?
+  "True if val is in coll."  ; It boggles my mind that Clojure doesn't have this in the stdlib...
+  [val coll]
+  (boolean (some #(= val %) coll)))
+
 (defn- fix-type-name
   [^String type-name]
   (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" ""))
@@ -44,35 +50,6 @@
 (defn- fix-descriptor
   [^String desc]
   (fix-type-name (.getClassName (org.objectweb.asm.Type/getType desc))))
-
-(defn- split-fqtypename
-  "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
-  [^String fqtypename]
-  (if (nil? fqtypename)
-    nil
-    (let [split-index (.lastIndexOf fqtypename ".")]
-      (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
-        [nil fqtypename]
-        [(subs fqtypename 0 split-index) (subs fqtypename (inc split-index))]))))
-
-(defn- add-dependency
-  [dependencies dependency dependency-type]
-  (if (contains? dependencies dependency)
-    (let [existing-dependency-types (dependencies dependency)
-          new-dependency-types      (conj existing-dependency-types dependency-type)]
-      (merge dependencies {dependency new-dependency-types}))
-    (merge dependencies {dependency #{dependency-type}})))
-
-(defn- add-dependencies
-  [dependencies new-dependencies dependency-type]
-  (if (or (empty? new-dependencies) (nil? new-dependencies))
-    dependencies
-    (loop [result                 dependencies
-           current-dependency     (first new-dependencies)
-           remaining-dependencies (rest  new-dependencies)]
-      (if (empty? remaining-dependencies)
-        (add-dependency result current-dependency dependency-type)
-        (recur (add-dependency result current-dependency dependency-type) (first remaining-dependencies) (rest remaining-dependencies))))))
 
 (defn- typeof
   [access-bitmask]
@@ -82,70 +59,119 @@
     (not= 0 (bit-and access-bitmask org.objectweb.asm.Opcodes/ACC_ANNOTATION)) :annotation
     :else                                                                      :class))
 
+(defn split-fqtypename
+  "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
+  [^String fqtypename]
+  (if (nil? fqtypename)
+    nil
+    (let [split-index (.lastIndexOf fqtypename ".")]
+      (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
+        [nil fqtypename]
+        [(subs fqtypename 0 split-index) (subs fqtypename (inc split-index))]))))
+
+(defn primitive?
+  [^String fqtypename]
+  (in? fqtypename primitive-type-names))
+
+(defn- create-dependency
+  [source target type]
+  {
+    :source     source
+    :target     target
+    :type       type
+  })
+
+(defn- create-dependencies
+  [source targets type]
+  (if (or (empty? targets) (nil? targets))
+    #{}
+    (loop [result            #{}
+           current-target    (first targets)
+           remaining-targets (rest  targets)]
+      (if (empty? remaining-targets)
+        (conj result (create-dependency source current-target type))
+        (recur (conj result (create-dependency source current-target type))
+               (first remaining-targets)
+               (rest remaining-targets))))))
+
 (defn- visit
   [class-info version access-bitmask class-name signature super-name interfaces]
   (let [fixed-class-name      (fix-type-name class-name)
         fixed-super-name      (fix-type-name super-name)
-        fixed-interface-names (vec (map fix-type-name interfaces))
-        existing-dependencies (:dependencies class-info)
+        fixed-interface-names (map fix-type-name interfaces)
+        dependencies          (second class-info)
         [package typename]    (split-fqtypename fixed-class-name)]
-    (merge class-info
-           { :name              fixed-class-name
-             :package           package
-             :typename          typename
-             :type              (typeof access-bitmask)
-             :class-version     version
-             :class-version-str (version-name-map version)
-             :dependencies      (add-dependency (add-dependencies existing-dependencies fixed-interface-names :implements)
-                                                fixed-super-name :extends) } )))
+    [
+      {
+        :name              fixed-class-name
+        :package           package
+        :typename          typename
+        :type              (typeof access-bitmask)
+        :class-version     version
+        :class-version-str (version-name-map version)
+      }
+      (into dependencies (conj (create-dependencies fixed-class-name fixed-interface-names :implements)
+                               (create-dependency fixed-class-name fixed-super-name :extends)))
+    ]))
 
 (defn- visit-field
   [class-info access-bitmask field-name desc signature value]
-  (let [existing-dependencies (:dependencies class-info)
-        fixed-field-name      (fix-descriptor desc)]
-    (merge class-info
-           {
-             :dependencies (add-dependency existing-dependencies fixed-field-name :uses)
-           })))
+  (let [info             (first class-info)
+        class-name       (:name info)
+        dependencies     (second class-info)
+        fixed-field-name (fix-descriptor desc)]
+    [
+      info
+      (conj dependencies (create-dependency class-name fixed-field-name :uses))
+    ]))
 
 (defn- visit-annotation
   [class-info annotation-name desc]
-  (let [existing-dependencies (:dependencies class-info)
+  (let [info                  (first class-info)
+        class-name            (:name info)
+        dependencies          (second class-info)
         fixed-annotation-type (fix-descriptor desc)]
-    (merge class-info
-           {
-             :dependencies (add-dependency existing-dependencies fixed-annotation-type :inner-class)  ; Not sure this is correct
-           })))
+    [
+      info
+      (conj dependencies (create-dependency class-name fixed-annotation-type :uses))
+    ]))
 
 (defn- visit-method
   [class-info access-bitmask method-name ^String desc signature exceptions]
-  (let [fixed-exception-names (vec (map fix-type-name exceptions))
-        existing-dependencies (:dependencies class-info)
-        argument-types        (vec (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc)))
+  (let [info                  (first class-info)
+        class-name            (:name info)
+        dependencies          (second class-info)
+        fixed-exception-names (map fix-type-name exceptions)
+        argument-types        (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
         return-type           (fix-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
-    (merge class-info
-           {
-             :dependencies (add-dependency (add-dependencies (add-dependencies existing-dependencies fixed-exception-names :uses) argument-types :uses) return-type :uses)
-           })))
+    [
+      info
+      (into dependencies (conj (create-dependencies class-name (into fixed-exception-names argument-types) :uses)
+                               (create-dependency class-name return-type :uses)))
+    ]))
 
 ; This doesn't appear to be useful - it's called regardless of who the parent of the inner class is
 (defn- visit-inner-class
   [class-info inner-class-name outer-name inner-name access-bitmask]
-  (let [existing-dependencies  (:dependencies class-info)
+  (let [info                   (first class-info)
+        class-name             (:name info)
+        dependencies           (second class-info)
         fixed-inner-class-name (fix-type-name inner-class-name)]
-    (merge class-info
-           {
-             :dependencies (add-dependency existing-dependencies fixed-inner-class-name :inner-class)
-           })))
+    [
+      info
+      (conj dependencies (create-dependency class-name fixed-inner-class-name :inner-class))
+    ]))
 
 (defn- visit-local-variable
   [class-info local-variable-name desc signature start end index]
-  (let [existing-dependencies     (:dependencies class-info)
+  (let [info                      (first class-info)
+        class-name                (:name info)
+        dependencies              (second class-info)
         fixed-local-variable-type (fix-descriptor desc)]
-    (merge class-info
-           {
-             :dependencies (add-dependency existing-dependencies fixed-local-variable-type :uses)
-           })))
+    [
+      info
+      (conj dependencies (create-dependency class-name fixed-local-variable-type :uses))
+    ]))
 
 (defn- class-of-first
   [& args]
@@ -154,33 +180,37 @@
 ; Public functions start here
 
 (defmulti class-info
-  "Returns the dependencies of the given class, as a map with this shape:
+  "Returns information for the given class, as a vector of two elements.  The first is a map of this shape:
   {
     :name                  \"fully.qualified.typename\"
     :package               \"package\"
     :typename              \"typename\"
     :source                \"source\"
-    :type                  :class OR :interface OR :annotation OR :enum OR :primitive OR :unknown
+    :type                  :class OR :interface OR :annotation OR :enum
     :class-version         49
     :class-version-str     \"1.5\"
-    :dependencies          {\"dependentTypeName\" #{:extends :implements :uses :inner-class :parent-class}
-                            ...}
   }
-  All of these keys will be present in the map, however they may have empty or nil values."
+
+  While the second is a set of maps, each of which has this shape:
+  #{
+    {
+      :source     \"sourceTypeName\"
+      :target     \"targetTypeName\"
+      :type       :extends OR :implements OR :uses OR :inner-class OR :parent-class
+    }
+    ...
+  }
+
+  Note: each source/target pair may appear more than once, albeit with a different type each time.
+
+  All of the keys shown above will be present in both maps, however they may have empty or nil values."
   class-of-first)
 
 (defmethod class-info java.io.InputStream
   ([^java.io.InputStream class-input-stream] (class-info class-input-stream nil))
   ([^java.io.InputStream class-input-stream
     ^java.lang.String    source]
-   (let [result             (atom { :name              nil
-                                    :package           nil
-                                    :typename          nil
-                                    :source            source
-                                    :type              nil
-                                    :class-version     nil
-                                    :class-version-str nil
-                                    :dependencies      {} })
+   (let [result             (atom [{} #{}])
          class-reader       (org.objectweb.asm.ClassReader. class-input-stream)
          annotation-visitor (proxy [org.objectweb.asm.AnnotationVisitor]
                                    [org.objectweb.asm.Opcodes/ASM4]
@@ -234,109 +264,20 @@
   (class-info (net.java.truevfs.access.TFile. file) source)))
 
 (defn classes-info
-  "Returns the dependencies of all class files in the given location (which may be a .class file, a directory or an archive,
-   expressed as either a String or a java.io.File).
-   See dependency-reader.parser for the structure of each entry in the result vector."
+  "Returns a vector of two elements.  The first element is a vector containing class-info maps for each of the
+   class files in the given location (which may be a .class file, a directory or an archive, expressed as either
+   a String or a java.io.File).
+
+   The second element is a set of maps containing each dependency found.
+
+   See the class-info function for details on the structure of the class-info and dependency maps."
   [file-or-directory]
   (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)]
     (if (.isDirectory tfile-or-directory)
-      (let [listing      (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
-            class-files  (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)]
-          (vec (concat (map #(class-info % (.getPath %)) class-files))))
-      (conj [] (class-info tfile-or-directory (.getPath tfile-or-directory))))))
-
-
-; Functions for manipulating dependencies, after they've been constructed
-(defn- top-level-type?
-  [top-level-types type]
-  (boolean (some #(= (:id %) type) top-level-types)))
-
-(defn- in?
-  [val coll]
-  (boolean (some #(= val %) coll)))
-
-(defn- primitive-type?
-  [typename]
-  (in? typename primitive-type-names))
-
-(defn- dependent-type-to-node
-  [fqtypename]
-  (let [[package typename] (split-fqtypename fqtypename)]
-    (if package
-      { :id fqtypename
-        :data { :name     fqtypename
-                :package  package
-                :typename typename
-                :type     (if (primitive-type? fqtypename) :primitive :unknown) } }
-      { :id fqtypename
-        :data { :name     fqtypename
-                :typename typename
-                :type     (if (primitive-type? fqtypename) :primitive :unknown) } })))
-
-(defn nodes
-  "Returns the nodes (types) in the dependency graph, in this shape:
-  [
-    {
-      :id \"fully.qualified.typename\"
-      :data
-      {
-        :name                  \"fully.qualified.typename\"
-        :package               \"package\"
-        :typename              \"typename\"
-        :source                \"source\"
-        :type                  :class OR :interface OR :annotation OR :enum OR :primitive OR :unknown
-        :class-version         49
-        :class-version-str     \"1.5\"
-      }
-    }
-    ...
-  ]
-  This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
-  one containing nodes and the other edges)."
-  [classes-info]
-  (let [top-level-types (map #(hash-map :id   (:name %)  ; Not quite sure why map literal syntax doesn't work here...
-                                        :data { :name              (:name              %)
-                                                :package           (:package           %)
-                                                :typename          (:typename          %)
-                                                :source            (:source            %)
-                                                :type              (:type              %)
-                                                :class-version     (:class-version     %)
-                                                :class-version-str (:class-version-str %)
-                                              }) classes-info)
-        dependent-types (vec (set (flatten (map #(keys (:dependencies %)) classes-info))))  ; Dodgy deduping!!
-        unique-dependent-types (keep #(if (top-level-type? top-level-types %) nil %) dependent-types)]
-    (vec (into top-level-types (map dependent-type-to-node unique-dependent-types)))))
-
-(defn- get-edge-2
-  [source dependency]
-  (let [target           (key dependency)
-        dependency-types (val dependency)]
-    (map #(hash-map :source source
-                    :target target
-                    :type   %) dependency-types)))
-
-(defn- get-edge
-  [class-info]
-  (let [source       (:name         class-info)
-        dependencies (:dependencies class-info)]
-    (flatten (map #(get-edge-2 source %) dependencies))))
-
-(defn edges
-  "Returns the edges (dependencies) in the dependency graph, in this shape:
-  [
-    {
-      :source \"sourceTypeName\"
-      :target \"targetTypeName\"
-      :type   :extends OR :implements OR :uses OR :inner-class OR :parent-class
-    }
-    ...
-  ]
-  This function is provided to support subsequent graph processing (most graph libraries seem to want the graph in two lists,
-  one containing nodes and the other edges)."
-  [classes-info]
-  (into [] (flatten (map get-edge classes-info))))
-
-(defn nodes-and-edges
-  "Returns a vector of two elements - the first containing the nodes of the dependency graph (see doc for nodes for details), the second the edges (see doc for edges for details)."
-  [classes-info]
-  [(nodes classes-info) (edges classes-info)])
+      (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
+            class-files         (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)
+            class-files-info    (map #(class-info % (.getPath %)) class-files)
+            merged-info         (vec (map first class-files-info))
+            merged-dependencies (reduce set/union (map second class-files-info))]
+        [merged-info merged-dependencies])
+      (class-info tfile-or-directory (.getPath tfile-or-directory)))))

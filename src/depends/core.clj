@@ -42,14 +42,13 @@
         (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
                              (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
                                                                         (net.java.truevfs.comp.zipdriver.ZipDriver.)))
-        (let [dependencies    (dr/classes-info source)
-              nodes-and-edges (dr/nodes-and-edges dependencies)]
+        (let [dependencies (dr/classes-info source)]
           (if edn
             (pprint dependencies))   ; Is this the right way to emit EDN?
           (if json
             (json/pprint dependencies :escape-unicode false))
           (if neo4j-coords
-            (neo/write-dependencies neo4j-coords (first nodes-and-edges) (second nodes-and-edges)))
+            (neo/write-dependencies! neo4j-coords dependencies))
 ;          (if svg
 ;            (svg/write-dependencies dependencies))
           nil)
