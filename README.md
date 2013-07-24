@@ -15,7 +15,7 @@ Other possible uses of the data this tool produces include:
  3. Faffing by looking at shiny graphy baubles
 
 Notes:
- * The tool reads dependencies that are present in the compiled .class files.  Amongst other things this means that types referred to only via generics (e.g. Map<ClassA, ClassB>) won't be listed in the dependency graph.
+ * The tool reads dependencies that are present in the compiled .class files.  Amongst other things this means that types referred to only via generics (e.g. Map&lt;ClassA, ClassB&gt;) won't be listed in the dependency graph.
  * I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre) practices.  Any comments, feedback, criticism is welcome (email address below).
 
 ## Installation
