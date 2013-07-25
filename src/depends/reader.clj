@@ -95,7 +95,7 @@
                (rest remaining-targets))))))
 
 (defn- visit
-  [class-info version access-bitmask class-name signature super-name interfaces]
+  [class-info version access-bitmask class-name signature super-name interfaces source]
   (let [fixed-class-name      (fix-type-name class-name)
         fixed-super-name      (fix-type-name super-name)
         fixed-interface-names (map fix-type-name interfaces)
@@ -109,6 +109,7 @@
         :type              (typeof access-bitmask)
         :class-version     version
         :class-version-str (version-name-map version)
+        :source            source
       }
       (into dependencies (conj (create-dependencies fixed-class-name fixed-interface-names :implements)
                                (create-dependency fixed-class-name fixed-super-name :extends)))
@@ -229,7 +230,7 @@
          class-visitor      (proxy [org.objectweb.asm.ClassVisitor]
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visit [version access-bitmask class-name signature super-name interfaces]
-                                     (swap! result visit version access-bitmask class-name signature super-name interfaces))
+                                     (swap! result visit version access-bitmask class-name signature super-name interfaces source))
                                    (visitField [access-bitmask field-name desc signature value]
                                      (swap! result visit-field access-bitmask field-name desc signature value)
                                      field-visitor)
