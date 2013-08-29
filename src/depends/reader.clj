@@ -45,11 +45,15 @@
 
 (defn- fix-type-name
   [^String type-name]
-  (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" ""))
+  (if (nil? type-name)
+    nil
+    (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" "")))
 
 (defn- fix-descriptor
   [^String desc]
-  (fix-type-name (.getClassName (org.objectweb.asm.Type/getType desc))))
+  (if (nil? desc)
+    nil
+    (fix-type-name (.getClassName (org.objectweb.asm.Type/getType desc)))))
 
 (defn- typeof
   [access-bitmask]
@@ -174,6 +178,52 @@
       (conj dependencies (create-dependency class-name fixed-local-variable-type :uses))
     ]))
 
+(defn- visit-method-call
+  [class-info opcode owner name ^String desc]
+  (let [info              (first class-info)
+        class-name        (:name info)
+        dependencies      (second class-info)
+        fixed-method-type (fix-type-name owner)
+        argument-types    (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type       (fix-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+    [
+      info
+      (if (or (nil? fixed-method-type)
+              (= fixed-method-type class-name))
+        dependencies
+        (into dependencies (conj (create-dependencies class-name argument-types    :uses)
+                                 (create-dependency   class-name return-type       :uses)
+                                 (create-dependency   class-name fixed-method-type :uses))))
+    ]))
+
+(defn- visit-field-usage
+  [class-info opcode owner name desc]
+  (let [info             (first class-info)
+        class-name       (:name info)
+        dependencies     (second class-info)
+        fixed-field-type (fix-type-name owner)]
+    [
+      info
+      (if (or (nil? fixed-field-type)
+              (= fixed-field-type class-name))
+        dependencies
+        (conj dependencies (create-dependency class-name fixed-field-type :uses)))
+    ]))
+
+(defn- visit-try-catch-block
+  [class-info start end handler type]
+  (let [info                 (first class-info)
+        class-name           (:name info)
+        dependencies         (second class-info)
+        fixed-exception-type (fix-type-name type)]
+    [
+      info
+      (if (nil? fixed-exception-type)
+        dependencies
+        (conj dependencies (create-dependency class-name fixed-exception-type :uses)))
+    ]))
+
+
 (defn- class-of-first
   [& args]
   (class (first args)))
@@ -226,7 +276,13 @@
          method-visitor     (proxy [org.objectweb.asm.MethodVisitor]
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visitLocalVariable [local-variable-name desc signature start end index]
-                                     (swap! result visit-local-variable local-variable-name desc signature start end index)))
+                                     (swap! result visit-local-variable local-variable-name desc signature start end index))
+                                   (visitMethodInsn [opcode owner name desc]
+                                     (swap! result visit-method-call opcode owner name desc))
+                                   (visitFieldInsn [opcode owner name desc]
+                                     (swap! result visit-field-usage opcode owner name desc))
+                                   (visitTryCatchBlock [start end handler type]
+                                     (swap! result visit-try-catch-block start end handler type)))
          class-visitor      (proxy [org.objectweb.asm.ClassVisitor]
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visit [version access-bitmask class-name signature super-name interfaces]

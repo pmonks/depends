@@ -17,8 +17,8 @@
   :dependencies [
                   [org.clojure/clojure                  "1.5.1"]
                   [org.clojure/data.json                "0.2.2"]
-                  [org.clojure/tools.cli                "0.2.2"]
-                  [org.clojure/tools.trace              "0.7.5"]
+                  [org.clojure/tools.cli                "0.2.4"]
+                  [org.clojure/tools.trace              "0.7.6"]
                   [org.clojure/tools.logging            "0.2.6"]
                   [clojurewerkz/neocons                 "1.1.0"]
                   [ch.qos.logback/logback-classic       "1.0.13"]
@@ -33,9 +33,6 @@
   :profiles {:dev {:dependencies [
                                    [midje "1.5.1"]
                                    [clj-ns-browser "1.3.1"]
-                                 ]
-                   :plugins [
-                              [lein-midje "3.0.1"]
-                            ]}}
+                                 ]}}
   :jvm-opts ^:replace []  ; Stop Leiningen from turning off JVM optimisations - makes it slower to start but ensures code runs as fast as possible
   :main depends.core)
