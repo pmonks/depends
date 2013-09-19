@@ -297,7 +297,10 @@
 ;                                   (visitInnerClass [inner-class-name outer-name inner-name access-bitmask]
 ;                                     (swap! result visit-inner-class inner-class-name outer-name inner-name access-bitmask))
                             )]
-     (.accept class-reader class-visitor 0)
+     (try
+       (.accept class-reader class-visitor 0)
+       (catch ArrayIndexOutOfBoundsException aioobe
+        (log/warn (str aioobe "Class " source " could not be parsed and has been skipped."))))
      @result)))
 
 (defmethod class-info net.java.truevfs.access.TFile
