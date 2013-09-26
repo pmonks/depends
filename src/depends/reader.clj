@@ -300,7 +300,7 @@
      (try
        (.accept class-reader class-visitor 0)
        (catch ArrayIndexOutOfBoundsException aioobe
-        (log/warn (str aioobe "Class " source " could not be parsed and has been skipped."))))
+        (log/warn aioobe (str "Class " source " could not be parsed and has been skipped."))))
      @result)))
 
 (defmethod class-info net.java.truevfs.access.TFile

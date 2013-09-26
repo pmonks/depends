@@ -32,7 +32,10 @@
 
 (defn- find-node-by-name
   [name]
-  (nn/find-one "node_auto_index" "name" name))   ; Note: requires that auto-indexing of the "name" property be enabled in neo4j.properties.
+  (try
+    (nn/find-one "node_auto_index" "name" name)   ; Note: requires that auto-indexing of the "name" property be enabled in neo4j.properties.
+    (catch clojure.lang.ExceptionInfo ei
+      (throw (Exception. "Neo4J: unable to find node by name in automatic index. Is neo4j.properties up to date?" ei)))))
 
 (defn- find-or-create-node-by-name
   [edge]
