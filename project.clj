@@ -23,11 +23,11 @@
                   [clojurewerkz/neocons                 "1.1.0"]
                   [ch.qos.logback/logback-classic       "1.0.13"]
                   [org.ow2.asm/asm                      "4.1"]
-                  [net.java.truevfs/truevfs-kernel-impl "0.10.3"]  ; Ugh TrueVFS' dependencies are crap
-                  [net.java.truevfs/truevfs-access      "0.10.3"]
-                  [net.java.truevfs/truevfs-driver-file "0.10.3"]
-                  [net.java.truevfs/truevfs-driver-zip  "0.10.3"]
-                  [net.java.truevfs/truevfs-driver-jar  "0.10.3"]
+                  [net.java.truevfs/truevfs-kernel-impl "0.10.4"]  ; Ugh TrueVFS' dependencies are crap
+                  [net.java.truevfs/truevfs-access      "0.10.4"]
+                  [net.java.truevfs/truevfs-driver-file "0.10.4"]
+                  [net.java.truevfs/truevfs-driver-zip  "0.10.4"]
+                  [net.java.truevfs/truevfs-driver-jar  "0.10.4"]
                   [lacij                                "0.8.1" :exclusions [org.clojure/clojure]]
                 ]
   :profiles {:dev {:dependencies [
