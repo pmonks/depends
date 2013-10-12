@@ -1,6 +1,4 @@
 # depends
-![Project Logo](https://github.com/pmonks/depends/wiki/images/depends.jpg)
-
 Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
 Why might that be useful, I hear you ask?
