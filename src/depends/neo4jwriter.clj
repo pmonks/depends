@@ -7,8 +7,6 @@
 ; Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
 ;
 
-;####TODO: Look at using the batch APIs instead of inserting everything one-at-a-time
-
 (ns depends.neo4jwriter
   (:require [clojure.tools.logging                   :as log]
             [clojure.java.io                         :as io]
@@ -66,6 +64,6 @@
     (let [nodes (first  dependencies)
           edges (second dependencies)]
       (nr/connect! neo4j-coords)
-      (doall (map create-node! nodes))
-      (doall (map create-edge! edges))
+      (doall (nn/create-batch (map strip-nils nodes)))  ; batch insert for embiggen of preformance
+      (doall (map create-edge! edges))                  ; Would be nice to use pmap here, but neo4j blows up with "java.net.ConnectException: Connection refused"
       nil)))

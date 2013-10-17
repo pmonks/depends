@@ -231,7 +231,7 @@
 ; Public functions start here
 
 (defmulti class-info
-  "Returns information for the given class, as a vector of two elements.  The first is a map of this shape:
+  "Returns information for the given class, as a vector of two elements.  The first is a map of class information, of this shape:
   {
     :name                  \"fully.qualified.typename\"
     :package               \"package\"
@@ -242,7 +242,7 @@
     :class-version-str     \"1.5\"
   }
 
-  While the second is a set of maps, each of which has this shape:
+  While the second is the set of relationships between classes, where each entry is a map of this shape:
   #{
     {
       :source     \"sourceTypeName\"
@@ -252,9 +252,9 @@
     ...
   }
 
-  Note: each source/target pair may appear more than once, albeit with a different type each time.
-
-  All of the keys shown above will be present in both maps, however they may have empty or nil values."
+  Notes:
+   * Keys in the first map may have empty or nil values.
+   * Each source/target pair may appear more than once in the relationship set, albeit with a different type each time."
   class-of-first)
 
 (defmethod class-info java.io.InputStream
@@ -336,7 +336,7 @@
     (if (.isDirectory tfile-or-directory)
       (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
             class-files         (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)
-            class-files-info    (map #(class-info % (.getPath %)) class-files)
+            class-files-info    (pmap #(class-info % (.getPath %)) class-files)  ; pmap for embiggen of preformance
             merged-info         (vec (map first class-files-info))
             merged-dependencies (reduce set/union (map second class-files-info))]
         [merged-info merged-dependencies])
