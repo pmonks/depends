@@ -336,7 +336,7 @@
     (if (.isDirectory tfile-or-directory)
       (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
             class-files         (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)
-            class-files-info    (pmap #(class-info % (.getPath %)) class-files)  ; pmap for embiggen of preformance
+            class-files-info    (map #(class-info % (.getPath %)) class-files)
             merged-info         (vec (map first class-files-info))
             merged-dependencies (reduce set/union (map second class-files-info))]
         [merged-info merged-dependencies])
