@@ -63,7 +63,7 @@ Eventually I plan to provide a precompiled executable uberjar as well.
  # Parse all .class files in the specified JAR file and write the dependencies to a Neo4J server running on localhost
  lein run -- -n http://localhost:7474/db/data/ /path/to/myjarfile.jar
 
- # Recursively parse all .class files in the specified EAR file (including those within JARs within WARs within the EAR) and don't write the results anywhere
+ # Recursively parse all .class files in the specified EAR file (including those within JARs within WARs within the EAR) and drop the results on the floor
  # Nonsensical, but possible (I'm too lazy to do proper command line argument validaton *sigh*)
  lein run -- /path/to/myenterpriseturdbucket.ear
 
