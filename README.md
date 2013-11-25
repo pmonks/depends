@@ -16,7 +16,17 @@ Notes:
  * The tool reads dependencies that are present in the compiled .class files.  Amongst other things this means that types referred to only via generics (e.g. Map&lt;ClassA, ClassB&gt;) won't be listed in the dependency graph.
  * I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre) practices.  Any comments, feedback, criticism is welcome (email address below).
 
-## Installation
+## Getting the bits
+
+### Dependencies
+ * [Oracle JDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (one of the libraries used by depends requires JDK 1.7 or newer, and depends is tested on Oracle JDKs only)
+ * [Clojure v1.5+](http://clojure.org/downloads)
+ * [Leiningen v2.0+](http://leiningen.org/#install)
+ * [Neo4j v1.9+](http://www.neo4j.org/download) (optional - only required if you intend to send output to a Neo4J database)
+
+Note: these dependencies should be installed via your OS package manager, where possible.  On Mac OSX, I strongly recommend [Homebrew](http://brew.sh/).
+
+### Installation
 
 Checkout the source from [GitHub](https://github.com/pmonks/depends).
 
