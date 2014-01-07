@@ -29,15 +29,15 @@
   (let [source-id (name-id-map (:source edge))
         target-id (name-id-map (:target edge))
         type      (:type edge)]
-  {
-    :method "POST"
-    :to     (str "/node/" source-id "/relationships")
-    :body
     {
-      :to   (str target-id)
-      :type type
-    }
-  }))
+      :method "POST"
+      :to     (str "/node/" source-id "/relationships")
+      :body
+      {
+        :to   (str target-id)
+        :type type
+      }
+    }))
 
 (defn- write-edges!
   "Writes the edges of the graph into a Neo4J database. Returns nil."
