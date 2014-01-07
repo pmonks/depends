@@ -1,5 +1,5 @@
 ;
-; Copyright © 2013 Peter Monks (pmonks@gmail.com)
+; Copyright © 2013,2014 Peter Monks (pmonks@gmail.com)
 ;
 ; This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
 ; Unported License. To view a copy of this license, visit

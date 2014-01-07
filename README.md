@@ -83,6 +83,6 @@ Continuous Integration: TODO!
 
 ## License
 
-Copyright © 2013 Peter Monks (pmonks@gmail.com)
+Copyright © 2013,2014 Peter Monks (pmonks@gmail.com)
 
 Distributed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
