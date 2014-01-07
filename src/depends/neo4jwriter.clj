@@ -16,13 +16,15 @@
             ))
 
 (def ^:private default-neo4j-coords "http://localhost:7474/db/data/")
+(def ^:private batch-size           50000)
 
 (defn- strip-nils
   "Strip entries with nil values from the given map."
   [m]
   (apply dissoc m (for [[k v] m :when (nil? v)] k)))
 
-(defn- edge-to-relationship-batch-op
+(defn- edge-to-relationship-op
+  "Creates a \"relationship op\" map for the given edge."
   [name-id-map edge]
   (let [source-id (name-id-map (:source edge))
         target-id (name-id-map (:target edge))
@@ -37,19 +39,23 @@
     }
   }))
 
-(defn- create-edges!
-  [nodes edges]
-  (let [name-id-map (zipmap (map #(:name (:data %)) nodes) (map :id nodes))
-        batch-ops   (map #(edge-to-relationship-batch-op name-id-map %) (sort-by :id edges))]
-    (doall (nb/perform batch-ops))))
+(defn- write-edges!
+  "Writes the edges of the graph into a Neo4J database. Returns nil."
+  [neo4j-nodes edges]
+  (let [name-id-map (zipmap (map #(:name (:data %)) neo4j-nodes) (map :id neo4j-nodes))
+        ops         (map #(edge-to-relationship-op name-id-map %) (sort-by :id edges))
+        batches     (partition-all batch-size ops)]
+    (doall (map nb/perform batches))
+    nil))
 
 (defn write-dependencies!
   "Writes class dependencies into a Neo4J database. Returns nil."
   ([dependencies] (write-dependencies! default-neo4j-coords dependencies))
   ([neo4j-coords dependencies]
     (nr/connect! neo4j-coords)
-    (let [nodes         (first  dependencies)
-          edges         (second dependencies)
-          created-nodes (doall (nn/create-batch (map strip-nils nodes)))]
-      (create-edges! created-nodes edges)
+    (let [nodes       (first  dependencies)
+          edges       (second dependencies)
+          batches     (partition-all batch-size nodes)
+          neo4j-nodes (doall (apply concat (map #(nn/create-batch (map strip-nils %)) batches)))]
+      (write-edges! neo4j-nodes edges)
       nil)))

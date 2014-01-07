@@ -10,10 +10,12 @@
 (ns depends.core
   (:require [clojure.string        :as s]
             [clojure.tools.logging :as log]
+            [clojure.data.json     :as json]
+            [io.aviso.exception    :as aviso]
             [depends.reader        :as dr]
             [depends.neo4jwriter   :as neo]
 ;            [depends.svgwriter     :as svg]
-            [clojure.data.json     :as json])
+            )
   (:use [clojure.tools.cli :only [cli]]
         [clojure.pprint :only [pprint]])
   (:gen-class))
@@ -60,4 +62,4 @@
               (catch java.util.ServiceConfigurationError sce
                 (comment "Ignore this exception because TrueVFS is noisy as crap.")))))))
   (catch Exception e
-    (log/error e))))
+    (log/error (aviso/format-exception e)))))
