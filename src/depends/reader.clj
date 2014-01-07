@@ -228,6 +228,27 @@
   [& args]
   (class (first args)))
 
+(defn- build-class-info-for-missing-dependency
+  "Constructs a class-info for the given fully qualified type name if it doesn't already exist in
+   class-infos, or nil otherwise."
+  [fqtypename]
+  (let [[package typename] (split-fqtypename fqtypename)]    
+    {
+      :name     fqtypename
+      :package  package
+      :typename typename
+      :type    (if (primitive? fqtypename) :primitive :unknown)
+    }))
+
+(defn- class-info-for-missing-dependencies
+  "Adds missing relationship targets to the list of class-info maps."
+  [relationships]
+  (let [sources              (set (map :source relationships))
+        targets              (set (map :target relationships))
+        missing-dependencies (set/difference targets sources)]
+    (map build-class-info-for-missing-dependency missing-dependencies)))
+
+
 ; Public functions start here
 
 (defmulti class-info
@@ -254,7 +275,7 @@
 
   Notes:
    * Keys in the first map may have empty or nil values.
-   * Each source/target pair may appear more than once in the relationship set, albeit with a different type each time."
+   * Each source/target pair may appear more than once in the relationship set, albeit with a different relationship type each time."
   class-of-first)
 
 (defmethod class-info java.io.InputStream
@@ -339,5 +360,6 @@
             class-files-info    (map #(class-info % (.getPath %)) class-files)
             merged-info         (vec (map first class-files-info))
             merged-dependencies (reduce set/union (map second class-files-info))]
-        [merged-info merged-dependencies])
+        [(into merged-info (class-info-for-missing-dependencies merged-dependencies)) merged-dependencies])
       (class-info tfile-or-directory (.getPath tfile-or-directory)))))
+

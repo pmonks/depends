@@ -8,13 +8,11 @@
 ;
 
 (ns depends.neo4jwriter
-  (:require [clojure.tools.logging                   :as log]
-            [clojure.java.io                         :as io]
-            [clojurewerkz.neocons.rest               :as nr]
-            [clojurewerkz.neocons.rest.nodes         :as nn]
-            [clojurewerkz.neocons.rest.relationships :as nrl]
-            [clojurewerkz.neocons.rest.batch         :as nb]
-            [depends.reader                          :as dr]
+  (:require [clojure.tools.logging           :as log]
+            [clojure.java.io                 :as io]
+            [clojurewerkz.neocons.rest       :as nr]
+            [clojurewerkz.neocons.rest.nodes :as nn]
+            [clojurewerkz.neocons.rest.batch :as nb]
             ))
 
 (def ^:private default-neo4j-coords "http://localhost:7474/db/data/")
@@ -24,46 +22,34 @@
   [m]
   (apply dissoc m (for [[k v] m :when (nil? v)] k)))
 
-(defn- create-node!
-  [node]
-  (nn/create (strip-nils node)))
+(defn- edge-to-relationship-batch-op
+  [name-id-map edge]
+  (let [source-id (name-id-map (:source edge))
+        target-id (name-id-map (:target edge))
+        type      (:type edge)]
+  {
+    :method "POST"
+    :to     (str "/node/" source-id "/relationships")
+    :body
+    {
+      :to   (str target-id)
+      :type type
+    }
+  }))
 
-(defn- find-node-by-name
-  [name]
-  (try
-    (nn/find-one "node_auto_index" "name" name)   ; Note: requires that auto-indexing of the "name" property be enabled in neo4j.properties.
-    (catch clojure.lang.ExceptionInfo ei
-      (throw (Exception. "Neo4J: unable to find node by name in automatic index. Is neo4j.properties up to date?" ei)))))
-
-(defn- find-or-create-node-by-name
-  [edge]
-  (let [fqtypename (:target edge)
-        result     (find-node-by-name fqtypename)]
-    (if (nil? result)
-      (let [[package typename] (dr/split-fqtypename fqtypename)]
-        (create-node!
-          {
-            :name     fqtypename
-            :package  package
-            :typename typename
-            :type    (if (dr/primitive? fqtypename) :primitive :unknown)
-          }))
-      result)))
-
-(defn- create-edge!
-  [edge]
-  (let [source-node (find-node-by-name           (:source edge))
-        target-node (find-or-create-node-by-name edge)
-        type        (:type edge)]
-    (nrl/create source-node target-node type)))
+(defn- create-edges!
+  [nodes edges]
+  (let [name-id-map (zipmap (map #(:name (:data %)) nodes) (map :id nodes))
+        batch-ops   (map #(edge-to-relationship-batch-op name-id-map %) (sort-by :id edges))]
+    (doall (nb/perform batch-ops))))
 
 (defn write-dependencies!
-  "Writes class dependencies into a Neo4J database.  Returns nil."
+  "Writes class dependencies into a Neo4J database. Returns nil."
   ([dependencies] (write-dependencies! default-neo4j-coords dependencies))
   ([neo4j-coords dependencies]
-    (let [nodes (first  dependencies)
-          edges (second dependencies)]
-      (nr/connect! neo4j-coords)
-      (doall (nn/create-batch (map strip-nils nodes)))  ; batch insert for embiggen of preformance
-      (doall (map create-edge! edges))                  ; Would be nice to use pmap here, but neo4j blows up with "java.net.ConnectException: Connection refused"
+    (nr/connect! neo4j-coords)
+    (let [nodes         (first  dependencies)
+          edges         (second dependencies)
+          created-nodes (doall (nn/create-batch (map strip-nils nodes)))]
+      (create-edges! created-nodes edges)
       nil)))
