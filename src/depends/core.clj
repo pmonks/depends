@@ -42,6 +42,8 @@
       (if (or help (nil? source))
         (println (str banner "\n Args\t\t\tDesc\n ----\t\t\t----\n source\t\t\tDetermines the dependencies of all class files in the given location (which may be a .class file, a directory or an archive). Must be provided.\n"))
         (try
+          (log/info "Starting...")
+
           ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
           (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
                                (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
@@ -50,11 +52,11 @@
           (let [dependencies (dr/classes-info source)]
             (if edn
               (do
-                (log/info (str "Writing dependencies as EDN..."))
+                (log/info (str "Writing dependencies to stdout as EDN..."))
                 (pprint dependencies)))   ; Is this the right way to emit EDN?
             (if json
               (do
-                (log/info (str "Writing dependencies as JSON..."))
+                (log/info (str "Writing dependencies to stdout as JSON..."))
                 (json/pprint dependencies :escape-unicode false)))
             (if neo4j-coords
               (do
@@ -66,6 +68,7 @@
 ;                (svg/write-dependencies dependencies)))
             nil)
           (finally  ; Don't forget to unmount TrueVFS
+            (log/info "Complete.")
             (try
               (net.java.truevfs.access.TVFS/umount)
               (catch java.util.ServiceConfigurationError sce
