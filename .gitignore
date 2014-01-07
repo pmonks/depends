@@ -6,3 +6,5 @@ pom.xml
 /target/
 .lein-deps-sum
 .lein-repl-history
+.nrepl-port
+.shell_history
