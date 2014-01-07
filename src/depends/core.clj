@@ -66,12 +66,13 @@
 ;              (do
 ;                (log/info (str "Writing dependencies to Neo4J..."))
 ;                (svg/write-dependencies dependencies)))
+            (log/info "Complete.")
             nil)
           (finally  ; Don't forget to unmount TrueVFS
-            (log/info "Complete.")
             (try
               (net.java.truevfs.access.TVFS/umount)
               (catch java.util.ServiceConfigurationError sce
                 (comment "Ignore this exception because TrueVFS is noisy as crap.")))))))
   (catch Exception e
+    (log/error e)
     (aviso/write-exception e))))
