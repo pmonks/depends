@@ -282,6 +282,7 @@
   ([^java.io.InputStream class-input-stream] (class-info class-input-stream nil))
   ([^java.io.InputStream class-input-stream
     ^java.lang.String    source]
+   (log/debug (str "Analysing " source "..."))
    (let [result             (atom [{} #{}])
          class-reader       (org.objectweb.asm.ClassReader. class-input-stream)
          annotation-visitor (proxy [org.objectweb.asm.AnnotationVisitor]

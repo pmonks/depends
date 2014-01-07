@@ -52,10 +52,14 @@
   "Writes class dependencies into a Neo4J database. Returns nil."
   ([dependencies] (write-dependencies! default-neo4j-coords dependencies))
   ([neo4j-coords dependencies]
+    (log/debug (str "Connecting to Neo4J server " neo4j-coords "..."))
     (nr/connect! neo4j-coords)
+
+    (log/debug (str "Writing " (count (first dependencies)) " nodes to Neo4J..."))
     (let [nodes       (first  dependencies)
           edges       (second dependencies)
           batches     (partition-all batch-size nodes)
           neo4j-nodes (doall (apply concat (map #(nn/create-batch (map strip-nils %)) batches)))]
+      (log/debug (str "Writing " (count edges) " edges to Neo4J..."))
       (write-edges! neo4j-nodes edges)
       nil)))

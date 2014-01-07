@@ -46,15 +46,24 @@
           (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
                                (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
                                                                           (net.java.truevfs.comp.zipdriver.ZipDriver.)))
+          (log/info (str "Calculating dependencies from " source "..."))
           (let [dependencies (dr/classes-info source)]
             (if edn
-              (pprint dependencies))   ; Is this the right way to emit EDN?
+              (do
+                (log/info (str "Writing dependencies as EDN..."))
+                (pprint dependencies)))   ; Is this the right way to emit EDN?
             (if json
-              (json/pprint dependencies :escape-unicode false))
+              (do
+                (log/info (str "Writing dependencies as JSON..."))
+                (json/pprint dependencies :escape-unicode false)))
             (if neo4j-coords
-              (neo/write-dependencies! neo4j-coords dependencies))
+              (do
+                (log/info (str "Writing dependencies to Neo4J..."))
+                (neo/write-dependencies! neo4j-coords dependencies)))
 ;            (if svg
-;              (svg/write-dependencies dependencies))
+;              (do
+;                (log/info (str "Writing dependencies to Neo4J..."))
+;                (svg/write-dependencies dependencies)))
             nil)
           (finally  ; Don't forget to unmount TrueVFS
             (try
@@ -62,4 +71,4 @@
               (catch java.util.ServiceConfigurationError sce
                 (comment "Ignore this exception because TrueVFS is noisy as crap.")))))))
   (catch Exception e
-    (log/error (aviso/format-exception e)))))
+    (aviso/write-exception e))))
