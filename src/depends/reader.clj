@@ -47,7 +47,7 @@
   [^String type-name]
   (if (nil? type-name)
     nil
-    (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" "")))
+    (.replaceAll (.replaceAll (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" "") "\\[L" "") ";" "")))
 
 (defn- fix-descriptor
   [^String desc]

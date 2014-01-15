@@ -66,4 +66,4 @@
             nil))))
     (catch Exception e
       (log/error e)
-      (aviso/write-exception e))))
+      (println (aviso/format-exception e)))))
