@@ -329,8 +329,16 @@
   ([^net.java.truevfs.access.TFile file] (class-info file nil))
   ([^net.java.truevfs.access.TFile file
     ^java.lang.String              source]
-   (with-open [class-input-stream (net.java.truevfs.access.TFileInputStream. file)]
-     (class-info class-input-stream source))))
+    (try
+      (with-open [class-input-stream (net.java.truevfs.access.TFileInputStream. file)]
+        (class-info class-input-stream source))
+      (finally
+        (try
+          (net.java.truevfs.access.TVFS/umount file)
+; ####TODO - this clause will result in the function returning nil...
+;          (catch java.util.ServiceConfigurationError sce
+;            (comment "Ignore this exception because TrueVFS is noisy as crap."))
+        )))))
 
 (defmethod class-info java.io.File
   ([^java.io.File file] (class-info file nil))
