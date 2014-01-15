@@ -282,7 +282,7 @@
   ([^java.io.InputStream class-input-stream] (class-info class-input-stream nil))
   ([^java.io.InputStream class-input-stream
     ^java.lang.String    source]
-   (log/debug (str "Analysing " source "..."))
+   (log/debug "Analysing" source "...")
    (let [result             (atom [{} #{}])
          class-reader       (org.objectweb.asm.ClassReader. class-input-stream)
          annotation-visitor (proxy [org.objectweb.asm.AnnotationVisitor]
@@ -357,7 +357,7 @@
 
    See the class-info function for details on the structure of the class-info and dependency maps."
   [file-or-directory]
-  (log/debug "Calculating dependency information for" file-or-directory)
+  (log/debug "Analysing all classes in" file-or-directory "...")
   ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
   (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
                        (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
