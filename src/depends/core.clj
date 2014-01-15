@@ -44,10 +44,6 @@
         (do
           (log/info "Starting...")
 
-          ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
-          (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
-                               (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
-                                                                          (net.java.truevfs.comp.zipdriver.ZipDriver.)))
           (log/info (str "Calculating dependencies from " source "..."))
           (let [dependencies (dr/classes-info source)]
             (if edn

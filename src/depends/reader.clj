@@ -333,12 +333,7 @@
       (with-open [class-input-stream (net.java.truevfs.access.TFileInputStream. file)]
         (class-info class-input-stream source))
       (finally
-        (try
-          (net.java.truevfs.access.TVFS/umount file)
-; ####TODO - this clause will result in the function returning nil...
-;          (catch java.util.ServiceConfigurationError sce
-;            (comment "Ignore this exception because TrueVFS is noisy as crap."))
-        )))))
+          (net.java.truevfs.access.TVFS/umount file)))))
 
 (defmethod class-info java.io.File
   ([^java.io.File file] (class-info file nil))
@@ -362,6 +357,10 @@
 
    See the class-info function for details on the structure of the class-info and dependency maps."
   [file-or-directory]
+  ; Look at the crap TrueVFS makes us do, just to add support for .AMP files (ZIP files under another name) #fail
+  (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
+                       (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
+                                                                  (net.java.truevfs.comp.zipdriver.ZipDriver.)))
   (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)]
     (if (.isDirectory tfile-or-directory)
       (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
