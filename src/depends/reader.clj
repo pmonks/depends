@@ -10,7 +10,8 @@
 (ns depends.reader
   (:require [clojure.tools.logging :as log]
             [clojure.java.io       :as io]
-            [clojure.set           :as set]))
+            [clojure.set           :as set]
+            [clojure.string        :as s]))
 
 (def ^:private version-name-map
   "Map of class version numbers to human readable equivalent."
@@ -43,17 +44,30 @@
   [val coll]
   (boolean (some #(= val %) coll)))
 
-(defn- fix-type-name
+(defn- fix-class-name
+  [^String class-name]
+  (if (nil? class-name)
+    nil
+    (s/replace (s/replace class-name \/ \.) "[]" "")))
+
+(defn- fix-descriptor
   [^String type-name]
   (if (nil? type-name)
     nil
-    (.replaceAll (.replaceAll (.replaceAll (.replaceAll type-name "/" ".") "\\[\\]" "") "\\[L" "") ";" "")))
-
-(defn- fix-descriptor
-  [^String desc]
-  (if (nil? desc)
-    nil
-    (fix-type-name (.getClassName (org.objectweb.asm.Type/getType desc)))))
+    (let [dearrayed-type-name (s/replace type-name "[" "")
+          type-character      (first (seq dearrayed-type-name))]
+      (condp = type-character
+        \L (fix-class-name (subs dearrayed-type-name 1 (dec (.length dearrayed-type-name))))
+        \B "byte"
+        \C "char"
+        \D "double"
+        \F "float"
+        \I "int"
+        \J "long"
+        \S "short"
+        \Z "boolean"
+        \V "void"
+        (throw (Exception. (str "Unknown type descriptor: " type-name)))))))
 
 (defn- typeof
   [access-bitmask]
@@ -100,9 +114,9 @@
 
 (defn- visit
   [class-info version access-bitmask class-name signature super-name interfaces source]
-  (let [fixed-class-name      (fix-type-name class-name)
-        fixed-super-name      (fix-type-name super-name)
-        fixed-interface-names (map fix-type-name interfaces)
+  (let [fixed-class-name      (fix-class-name class-name)
+        fixed-super-name      (fix-class-name super-name)
+        fixed-interface-names (map fix-class-name interfaces)
         dependencies          (second class-info)
         [package typename]    (split-fqtypename fixed-class-name)]
     [
@@ -146,9 +160,9 @@
   (let [info                  (first class-info)
         class-name            (:name info)
         dependencies          (second class-info)
-        fixed-exception-names (map fix-type-name exceptions)
-        argument-types        (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type           (fix-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+        fixed-exception-names (map fix-class-name exceptions)
+        argument-types        (map #(fix-class-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type           (fix-class-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
     [
       info
       (into dependencies (conj (create-dependencies class-name (into fixed-exception-names argument-types) :uses)
@@ -161,7 +175,7 @@
   (let [info                   (first class-info)
         class-name             (:name info)
         dependencies           (second class-info)
-        fixed-inner-class-name (fix-type-name inner-class-name)]
+        fixed-inner-class-name (fix-descriptor inner-class-name)]
     [
       info
       (conj dependencies (create-dependency class-name fixed-inner-class-name :inner-class))
@@ -183,9 +197,9 @@
   (let [info              (first class-info)
         class-name        (:name info)
         dependencies      (second class-info)
-        fixed-method-type (fix-type-name owner)
-        argument-types    (map #(fix-type-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type       (fix-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+        fixed-method-type (fix-class-name (.getClassName (org.objectweb.asm.Type/getMethodType owner)))
+        argument-types    (map #(fix-class-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type       (fix-class-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
     [
       info
       (if (or (nil? fixed-method-type)
@@ -201,7 +215,7 @@
   (let [info             (first class-info)
         class-name       (:name info)
         dependencies     (second class-info)
-        fixed-field-type (fix-type-name owner)]
+        fixed-field-type (fix-class-name owner)]
     [
       info
       (if (or (nil? fixed-field-type)
@@ -215,7 +229,7 @@
   (let [info                 (first class-info)
         class-name           (:name info)
         dependencies         (second class-info)
-        fixed-exception-type (fix-type-name type)]
+        fixed-exception-type (fix-class-name type)]
     [
       info
       (if (nil? fixed-exception-type)
@@ -322,7 +336,7 @@
      (try
        (.accept class-reader class-visitor 0)
        (catch ArrayIndexOutOfBoundsException aioobe
-        (log/warn aioobe (str "Class " source " could not be parsed and has been skipped."))))
+         (log/warn aioobe (str "Class " source " could not be parsed and has been skipped."))))
      @result)))
 
 (defmethod class-info net.java.truevfs.access.TFile
@@ -333,7 +347,7 @@
       (with-open [class-input-stream (net.java.truevfs.access.TFileInputStream. file)]
         (class-info class-input-stream source))
       (finally
-          (net.java.truevfs.access.TVFS/umount file)))))
+        (net.java.truevfs.access.TVFS/umount file)))))
 
 (defmethod class-info java.io.File
   ([^java.io.File file] (class-info file nil))
@@ -346,7 +360,7 @@
   ([^java.lang.String file] (class-info file nil))
   ([^java.lang.String file
     ^java.lang.String source]
-  (class-info (net.java.truevfs.access.TFile. file) source)))
+    (class-info (net.java.truevfs.access.TFile. file) source)))
 
 (defn classes-info
   "Returns a vector of two elements.  The first element is a vector containing class-info maps for each of the
