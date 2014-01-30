@@ -16,27 +16,26 @@
 (def ^:private version-name-map
   "Map of class version numbers to human readable equivalent."
   {
-    45 "1.0 or 1.1",
-    46 "1.2",
-    47 "1.3",
-    48 "1.4",
-    49 "1.5",
-    50 "1.6",
-    51 "1.7",
-    52 "1.8"   ; Speculative!
+    (org.objectweb.asm.Opcodes/V1_1) "1.1",
+    (org.objectweb.asm.Opcodes/V1_2) "1.2",
+    (org.objectweb.asm.Opcodes/V1_3) "1.3",
+    (org.objectweb.asm.Opcodes/V1_4) "1.4",
+    (org.objectweb.asm.Opcodes/V1_5) "1.5",
+    (org.objectweb.asm.Opcodes/V1_6) "1.6",
+    (org.objectweb.asm.Opcodes/V1_7) "1.7"
   })
 
 (def ^:private type-codes-to-names
   {
-    \B "boolean"
-    \C "char"
-    \D "double"
-    \F "float"
-    \I "int"
-    \J "long"
-    \S "short"
-    \V "void"
-    \Z "boolean"
+    \B (.getClassName org.objectweb.asm.Type/BYTE_TYPE)
+    \C (.getClassName org.objectweb.asm.Type/CHAR_TYPE)
+    \D (.getClassName org.objectweb.asm.Type/DOUBLE_TYPE)
+    \F (.getClassName org.objectweb.asm.Type/FLOAT_TYPE)
+    \I (.getClassName org.objectweb.asm.Type/INT_TYPE)
+    \J (.getClassName org.objectweb.asm.Type/LONG_TYPE)
+    \S (.getClassName org.objectweb.asm.Type/SHORT_TYPE)
+    \V (.getClassName org.objectweb.asm.Type/VOID_TYPE)
+    \Z (.getClassName org.objectweb.asm.Type/BOOLEAN_TYPE)
   })
 
 (def ^:private primitive-type-names (vals type-codes-to-names))
@@ -60,7 +59,7 @@
     (if-let [matches (re-matches type-name-regex (s/trim s))]
       (let [[_ ^String descriptor ^String type-name] matches]
         (if (or (= 0 (.length (s/trim descriptor))) (= "L" (s/trim descriptor)))
-          (s/replace (s/replace (s/trim type-name) \/ \.) "[]" "")       ; type (class, interface, enum, annotation, etc.)
+          (s/replace (s/replace (s/trim type-name) \/ \.) "[]" "")       ; type
           (get type-codes-to-names (first (seq (s/trim descriptor))))))  ; primitive
       (throw (Exception. (str "Invalid type name or descriptor: " s))))))
 
@@ -156,8 +155,8 @@
         class-name            (:name info)
         dependencies          (second class-info)
         fixed-exception-names (map determine-type-name exceptions)
-        argument-types        (map #(.getClassName ^org.objectweb.asm.Type %) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type           (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+        argument-types        (map #(determine-type-name (.getClassName ^org.objectweb.asm.Type %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type           (determine-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
     (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
     [
       info
@@ -194,8 +193,8 @@
         class-name        (:name info)
         dependencies      (second class-info)
         fixed-method-type (determine-type-name owner)
-        argument-types    (map #(.getClassName ^org.objectweb.asm.Type %) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type       (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+        argument-types    (map #(determine-type-name (.getClassName ^org.objectweb.asm.Type %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type       (determine-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
     (assert (not (xor owner fixed-method-type)) (str "owner=" owner ", fixed-method-type=" fixed-method-type))  ; Check that ASM doesn't f up the method type descriptor
     (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
     [
