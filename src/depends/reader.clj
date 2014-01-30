@@ -26,50 +26,45 @@
     52 "1.8"   ; Speculative!
   })
 
-(def ^:private primitive-type-names
-  #{
-    "byte"
-    "short"
-    "int"
-    "long"
-    "float"
-    "double"
-    "boolean"
-    "char"
-    "void"
-    })
+(def ^:private type-codes-to-names
+  {
+    \B "boolean"
+    \C "char"
+    \D "double"
+    \F "float"
+    \I "int"
+    \J "long"
+    \S "short"
+    \V "void"
+    \Z "boolean"
+  })
+
+(def ^:private primitive-type-names (vals type-codes-to-names))
+
+(def ^:private type-name-regex #"\[*([LBCDFIJSZV]?)([^;\s]*);?")  ; group 1 = descriptor (if any), group 2 = type name (if any)
 
 (defn- in?
   "True if val is in coll."  ; It boggles my mind that Clojure doesn't have this in the stdlib...
   [val coll]
   (boolean (some #(= val %) coll)))
 
-(defn- fix-class-name
-  [^String class-name]
-  (if (nil? class-name)
-    nil
-    (s/replace (s/replace class-name \/ \.) "[]" "")))
+(defn- xor
+  "Logical XOR, based on truthiness."  ; It boggles my mind that Clojure doesn't have this in the stdlib...
+  [a b]
+  (and (or a b) (not (and a b))))
 
-(defn- fix-descriptor
-  [^String type-name]
-  (if (nil? type-name)
+(defn- determine-type-name
+  [^String s]
+  (if (or (nil? s) (= 0 (.length (s/trim s))))
     nil
-    (let [dearrayed-type-name (s/replace type-name "[" "")
-          type-character      (first (seq dearrayed-type-name))]
-      (condp = type-character
-        \L (fix-class-name (subs dearrayed-type-name 1 (dec (.length dearrayed-type-name))))
-        \B "byte"
-        \C "char"
-        \D "double"
-        \F "float"
-        \I "int"
-        \J "long"
-        \S "short"
-        \Z "boolean"
-        \V "void"
-        (throw (Exception. (str "Unknown type descriptor: " type-name)))))))
+    (if-let [matches (re-matches type-name-regex (s/trim s))]
+      (let [[_ ^String descriptor ^String type-name] matches]
+        (if (or (= 0 (.length (s/trim descriptor))) (= "L" (s/trim descriptor)))
+          (s/replace (s/replace (s/trim type-name) \/ \.) "[]" "")       ; type (class, interface, enum, annotation, etc.)
+          (get type-codes-to-names (first (seq (s/trim descriptor))))))  ; primitive
+      (throw (Exception. (str "Invalid type name or descriptor: " s))))))
 
-(defn- typeof
+(defn- determine-type-type
   [access-bitmask]
   (cond
     (not= 0 (bit-and access-bitmask org.objectweb.asm.Opcodes/ACC_INTERFACE))  :interface
@@ -114,9 +109,9 @@
 
 (defn- visit
   [class-info version access-bitmask class-name signature super-name interfaces source]
-  (let [fixed-class-name      (fix-class-name class-name)
-        fixed-super-name      (fix-class-name super-name)
-        fixed-interface-names (map fix-class-name interfaces)
+  (let [fixed-class-name      (determine-type-name class-name)
+        fixed-super-name      (determine-type-name super-name)
+        fixed-interface-names (map determine-type-name interfaces)
         dependencies          (second class-info)
         [package typename]    (split-fqtypename fixed-class-name)]
     [
@@ -124,7 +119,7 @@
         :name              fixed-class-name
         :package           package
         :typename          typename
-        :type              (typeof access-bitmask)
+        :type              (determine-type-type access-bitmask)
         :class-version     version
         :class-version-str (version-name-map version)
         :source            source
@@ -138,7 +133,7 @@
   (let [info             (first class-info)
         class-name       (:name info)
         dependencies     (second class-info)
-        fixed-field-name (fix-descriptor desc)]
+        fixed-field-name (determine-type-name desc)]
     [
       info
       (conj dependencies (create-dependency class-name fixed-field-name :uses))
@@ -149,7 +144,7 @@
   (let [info                  (first class-info)
         class-name            (:name info)
         dependencies          (second class-info)
-        fixed-annotation-type (fix-descriptor desc)]
+        fixed-annotation-type (determine-type-name desc)]
     [
       info
       (conj dependencies (create-dependency class-name fixed-annotation-type :uses))
@@ -160,9 +155,10 @@
   (let [info                  (first class-info)
         class-name            (:name info)
         dependencies          (second class-info)
-        fixed-exception-names (map fix-class-name exceptions)
-        argument-types        (map #(fix-class-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type           (fix-class-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+        fixed-exception-names (map determine-type-name exceptions)
+        argument-types        (map #(.getClassName ^org.objectweb.asm.Type %) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type           (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+    (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
     [
       info
       (into dependencies (conj (create-dependencies class-name (into fixed-exception-names argument-types) :uses)
@@ -175,7 +171,7 @@
   (let [info                   (first class-info)
         class-name             (:name info)
         dependencies           (second class-info)
-        fixed-inner-class-name (fix-descriptor inner-class-name)]
+        fixed-inner-class-name (determine-type-name inner-class-name)]
     [
       info
       (conj dependencies (create-dependency class-name fixed-inner-class-name :inner-class))
@@ -186,7 +182,7 @@
   (let [info                      (first class-info)
         class-name                (:name info)
         dependencies              (second class-info)
-        fixed-local-variable-type (fix-descriptor desc)]
+        fixed-local-variable-type (determine-type-name desc)]
     [
       info
       (conj dependencies (create-dependency class-name fixed-local-variable-type :uses))
@@ -197,9 +193,11 @@
   (let [info              (first class-info)
         class-name        (:name info)
         dependencies      (second class-info)
-        fixed-method-type (fix-class-name (.getClassName (org.objectweb.asm.Type/getMethodType owner)))
-        argument-types    (map #(fix-class-name (.getClassName %)) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type       (fix-class-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+        fixed-method-type (determine-type-name owner)
+        argument-types    (map #(.getClassName ^org.objectweb.asm.Type %) (org.objectweb.asm.Type/getArgumentTypes desc))
+        return-type       (.getClassName (org.objectweb.asm.Type/getReturnType desc))]
+    (assert (not (xor owner fixed-method-type)) (str "owner=" owner ", fixed-method-type=" fixed-method-type))  ; Check that ASM doesn't f up the method type descriptor
+    (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
     [
       info
       (if (or (nil? fixed-method-type)
@@ -215,7 +213,7 @@
   (let [info             (first class-info)
         class-name       (:name info)
         dependencies     (second class-info)
-        fixed-field-type (fix-class-name owner)]
+        fixed-field-type (determine-type-name owner)]
     [
       info
       (if (or (nil? fixed-field-type)
@@ -229,7 +227,7 @@
   (let [info                 (first class-info)
         class-name           (:name info)
         dependencies         (second class-info)
-        fixed-exception-type (fix-class-name type)]
+        fixed-exception-type (determine-type-name type)]
     [
       info
       (if (nil? fixed-exception-type)
@@ -379,8 +377,11 @@
   (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)]
     (if (.isDirectory tfile-or-directory)
       (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
-            class-files         (filter #(and (.canRead %) (.isFile %) (.endsWith (.getName %) ".class")) listing)
-            class-files-info    (map #(class-info % (.getPath %)) class-files)
+            class-files         (filter #(and (.canRead ^java.io.File %)
+                                              (.isFile ^java.io.File %)
+                                              (.endsWith ^String (.getName ^java.io.File %) ".class"))
+                                        listing)
+            class-files-info    (map #(class-info % (.getPath ^java.io.File %)) class-files)
             merged-info         (vec (map first class-files-info))
             merged-dependencies (reduce set/union (map second class-files-info))]
         [(into merged-info (class-info-for-missing-dependencies merged-dependencies)) merged-dependencies])
