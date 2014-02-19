@@ -23,9 +23,6 @@
 (defn -main
   "Calculate class file(s) dependencies from the command line."
   [& args]
-  ;; work around dangerous default behaviour in Clojure
-  (alter-var-root #'*read-eval* (constantly false))
-
   (try
     (let [[options args banner] (cli args
                                      ["-j" "--json"  "Write JSON to stdout"                :default false :flag true]
