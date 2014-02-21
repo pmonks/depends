@@ -22,15 +22,15 @@ Notes:
  * [Oracle JDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (one of the libraries used by depends requires JDK 1.7 or newer, and depends is tested on Oracle JDKs only)
  * [Clojure v1.5+](http://clojure.org/downloads)
  * [Leiningen v2.0+](http://leiningen.org/#install)
- * [Neo4j v1.9+](http://www.neo4j.org/download) (optional - only required if you intend to send output to a Neo4J database)
+ * [Neo4j v2.0+](http://www.neo4j.org/download) (optional - only required if you intend to send output to a Neo4J database)
 
 Note: these dependencies should be installed via your OS package manager, where possible.  On Mac OSX, I strongly recommend [Homebrew](http://brew.sh/).
 
-### Installation
+### Command line usage
 
-Checkout the source from [GitHub](https://github.com/pmonks/depends).
+If you wish to use `depends` as a command line app, checkout the source from [GitHub](https://github.com/pmonks/depends).
 
-## Running / usage
+#### Running the command line app
 
 For now depends is source only, so...
 
@@ -52,7 +52,7 @@ For now depends is source only, so...
 
 Eventually I plan to provide a precompiled executable uberjar as well.
 
-### Examples:
+#### Examples:
 ```shell
  # Parse a single .class file and write the dependencies to stdout in EDN format
  lein run -- -e /path/to/myclassfile.class
@@ -72,6 +72,20 @@ Eventually I plan to provide a precompiled executable uberjar as well.
  lein run -- -e -j -n http://neo4j.veryimportantcompany.com:7474/db/data/ /path/to/yourzipisdown.zip
 ```
 
+### Library usage
+
+If you wish to use `depends` as a library, it's available as a Maven artifact from [Clojars](https://clojars.org/org.clojars.pmonks/depends):
+
+```clojure
+[org.clojars.pmonks/depends "0.1.0"]
+```
+
+The library's functionality is provided in the `depends.reader` and `depends.neo4jwriter` namespaces.
+`depends.reader` contains the logic that analyses .class files and returns the results as data structures.
+`depends.neo4jwriter` writes those data structures into a Neo4J database.
+
+TODO: provide more detailed usage instructions for the library.
+
 ## Developer Information
 
 [GitHub project](https://github.com/pmonks/depends)
@@ -85,4 +99,4 @@ Continuous Integration: TODO!
 
 Copyright © 2013,2014 Peter Monks (pmonks@gmail.com)
 
-Distributed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
+Distributed under the [Eclipse Public License](http://www.eclipse.org/legal/epl-v10.html) either version 1.0 or (at your option) any later version.
