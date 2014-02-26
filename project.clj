@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(defproject org.clojars.pmonks/depends "0.1.0"
+(defproject org.clojars.pmonks/depends "0.2.0-SNAPSHOT"
   :description      "Reads dependency information from compiled .class files."
   :url              "https://github.com/pmonks/depends"
   :url              "https://github.com/pmonks/multigrep"
