@@ -27,12 +27,12 @@
                   [ch.qos.logback/logback-classic               "1.1.1"]
                   [io.aviso/pretty                              "0.1.9"]
                   [org.ow2.asm/asm                              "4.2"]
-                  [net.java.truevfs/truevfs-kernel-impl         "0.10.5"]  ; Ugh TrueVFS' dependencies are crap
-                  [net.java.truevfs/truevfs-access              "0.10.5"]
-                  [net.java.truevfs/truevfs-driver-file         "0.10.5"]
-                  [net.java.truevfs/truevfs-driver-zip          "0.10.5"]
-                  [net.java.truevfs/truevfs-driver-jar          "0.10.5"]
-                  [net.java.truecommons/truecommons-key-disable "2.3.3"]
+                  [net.java.truevfs/truevfs-kernel-impl         "0.10.6"]  ; Ugh TrueVFS' dependencies are crap
+                  [net.java.truevfs/truevfs-access              "0.10.6"]
+                  [net.java.truevfs/truevfs-driver-file         "0.10.6"]
+                  [net.java.truevfs/truevfs-driver-zip          "0.10.6"]
+                  [net.java.truevfs/truevfs-driver-jar          "0.10.6"]
+                  [net.java.truecommons/truecommons-key-disable "2.3.4"]
 ;                  [lacij                                        "0.9.0" :exclusions [org.clojure/clojure]]
                 ]
   :profiles  {:dev {:dependencies [
