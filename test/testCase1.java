@@ -1,0 +1,3 @@
+class testCase1
+{
+}
