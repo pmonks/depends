@@ -12,7 +12,6 @@
 (defproject org.clojars.pmonks/depends "0.2.0-SNAPSHOT"
   :description      "Reads dependency information from compiled .class files."
   :url              "https://github.com/pmonks/depends"
-  :url              "https://github.com/pmonks/multigrep"
   :license          {:name "Eclipse Public License"
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :min-lein-version "2.0.0"
@@ -35,10 +34,8 @@
                   [net.java.truecommons/truecommons-key-disable "2.3.4"]
 ;                  [lacij                                        "0.9.0" :exclusions [org.clojure/clojure]]
                 ]
-  :profiles  {:dev {:dependencies [
-                                   [midje          "1.6.2"]
-                                   [clj-ns-browser "1.3.1"]
-                                  ]}
+  :profiles  {:dev     {:dependencies [[midje      "1.6.2"]]
+                        :plugins      [[lein-midje "3.0.1"]]}
              :uberjar {:aot :all}
   }
   :uberjar-merge-with {#"META-INF/services/.*" [slurp str spit]}   ; Merge Java ServiceLocator descriptors during uberjar construction
