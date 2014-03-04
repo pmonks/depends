@@ -339,7 +339,7 @@
      @result)))
 
 (defmethod class-info net.java.truevfs.access.TFile
-  ([^net.java.truevfs.access.TFile file] (class-info file nil))
+  ([^net.java.truevfs.access.TFile file] (class-info file (.getName file)))
   ([^net.java.truevfs.access.TFile file
     ^java.lang.String              source]
     (try
@@ -349,17 +349,17 @@
         (net.java.truevfs.access.TVFS/umount file)))))
 
 (defmethod class-info java.io.File
-  ([^java.io.File file] (class-info file nil))
+  ([^java.io.File file] (class-info file (.getName file)))
   ([^java.io.File     file
     ^java.lang.String source]
    (with-open [class-input-stream (java.io.BufferedInputStream. (java.io.FileInputStream. file))]
      (class-info class-input-stream))))
 
 (defmethod class-info java.lang.String
-  ([^java.lang.String file] (class-info file nil))
+  ([^java.lang.String file] (class-info file file))
   ([^java.lang.String file
     ^java.lang.String source]
-    (class-info (net.java.truevfs.access.TFile. file) source)))
+   (class-info (net.java.truevfs.access.TFile. file) source)))
 
 (defn classes-info
   "Returns a vector of two elements.  The first element is a vector containing class-info maps for each of the

@@ -14,13 +14,25 @@
             [midje.sweet     :refer :all]
             [depends.reader  :refer :all]))
 
-(fact (class-info "test/testCase1.class") => [{:class-version 51,
-                                               :class-version-str "1.7",
-                                               :name "testCase1",
-                                               :package nil,
-                                               :source nil,
-                                               :type :class,
+(facts "About testCase1.class"
+  (class-info "test/testCase1.class") => [{:class-version 51
+                                           :class-version-str "1.7"
+                                           :name "testCase1"
+                                           :package nil
+                                           :source "test/testCase1.class"
+                                           :type :class
+                                           :typename "testCase1"}
+                                         #{{:source "testCase1" :target "java.lang.Object" :type :extends}
+                                           {:source "testCase1" :target "void"             :type :uses}
+                                           {:source "testCase1" :target "java.lang.Object" :type :uses}}]
+  (class-info "test/testCase1.class" nil) => [{:class-version 51
+                                               :class-version-str "1.7"
+                                               :name "testCase1"
+                                               :package nil
+                                               :source nil
+                                               :type :class
                                                :typename "testCase1"}
-                                             #{{:source "testCase1", :target "java.lang.Object", :type :extends}
-                                               {:source "testCase1", :target "void",             :type :uses}
-                                               {:source "testCase1", :target "java.lang.Object", :type :uses}}])
+                                              #{{:source "testCase1" :target "java.lang.Object" :type :extends}
+                                                {:source "testCase1" :target "void"             :type :uses}
+                                                {:source "testCase1" :target "java.lang.Object" :type :uses}}])
+
