@@ -92,8 +92,7 @@ TODO: provide more detailed usage instructions for the library.
 
 [Bug Tracker](https://github.com/pmonks/depends/issues)
 
-Continuous Integration: TODO!
-
+[![Build Status](https://travis-ci.org/pmonks/depends.png?branch=master)](https://travis-ci.org/pmonks/depends.png)
 
 ## License
 
