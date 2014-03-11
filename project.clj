@@ -34,7 +34,7 @@
                   [net.java.truecommons/truecommons-key-disable "2.3.4"]
 ;                  [lacij                                        "0.9.0" :exclusions [org.clojure/clojure]]
                 ]
-  :profiles  {:dev     {:dependencies [[midje      "1.6.2"]]
+  :profiles  {:dev     {:dependencies [[midje      "1.6.3"]]
                         :plugins      [[lein-midje "3.0.1"]]}
              :uberjar {:aot :all}
   }
