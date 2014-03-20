@@ -190,7 +190,7 @@
     ]))
 
 (defn- visit-method-call
-  [class-info opcode owner name ^String desc]
+  [class-info opcode owner name ^String desc itf]
   (let [info              (first class-info)
         class-name        (:name info)
         dependencies      (second class-info)
@@ -312,8 +312,8 @@
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visitLocalVariable [local-variable-name desc signature start end index]
                                      (swap! result visit-local-variable local-variable-name desc signature start end index))
-                                   (visitMethodInsn [opcode owner name desc]
-                                     (swap! result visit-method-call opcode owner name desc))
+                                   (visitMethodInsn [opcode owner name desc itf]
+                                     (swap! result visit-method-call opcode owner name desc itf))
                                    (visitFieldInsn [opcode owner name desc]
                                      (swap! result visit-field-usage opcode owner name desc))
                                    (visitTryCatchBlock [start end handler type]
