@@ -76,9 +76,7 @@ Eventually I plan to provide a precompiled executable uberjar as well.
 
 If you wish to use `depends` as a library, it's available as a Maven artifact from [Clojars](https://clojars.org/org.clojars.pmonks/depends):
 
-```clojure
-[org.clojars.pmonks/depends "0.1.0"]
-```
+[![version](https://clojars.org/org.clojars.pmonks/depends/latest-version.svg)](https://clojars.org/org.clojars.pmonks/depends)
 
 The library's functionality is provided in the `depends.reader` and `depends.neo4jwriter` namespaces.
 `depends.reader` contains the logic that analyses .class files and returns the results as data structures.

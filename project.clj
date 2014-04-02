@@ -17,7 +17,7 @@
   :min-lein-version "2.0.0"
   :javac-target     "1.7"
   :dependencies [
-                  [org.clojure/clojure                          "1.5.1"]
+                  [org.clojure/clojure                          "1.6.0"]
                   [org.clojure/data.json                        "0.2.4"]
                   [org.clojure/tools.cli                        "0.3.1"]
 ;                  [org.clojure/tools.trace                      "0.7.8"]
