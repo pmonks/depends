@@ -17,10 +17,8 @@
   :min-lein-version "2.0.0"
   :javac-target     "1.7"
   :dependencies [
-                  [org.clojure/clojure                          "1.6.0"]
                   [org.clojure/data.json                        "0.2.4"]
                   [org.clojure/tools.cli                        "0.3.1"]
-;                  [org.clojure/tools.trace                      "0.7.8"]
                   [org.clojure/tools.logging                    "0.2.6"]
                   [clojurewerkz/neocons                         "2.0.1"]
                   [ch.qos.logback/logback-classic               "1.1.2"]
@@ -32,13 +30,10 @@
                   [net.java.truevfs/truevfs-driver-zip          "0.10.6"]
                   [net.java.truevfs/truevfs-driver-jar          "0.10.6"]
                   [net.java.truecommons/truecommons-key-disable "2.3.4"]
-;                  [lacij                                        "0.9.0" :exclusions [org.clojure/clojure]]
                 ]
-  :profiles  {:dev     {:dependencies [[midje      "1.6.3"]]
-                        :plugins      [[lein-midje "3.0.1"]]}
-             :uberjar {:aot :all}
-  }
-  :uberjar-merge-with {#"META-INF/services/.*" [slurp str spit]}   ; Merge Java ServiceLocator descriptors during uberjar construction
+  :profiles  {:dev     {:dependencies [[midje "1.6.3"]]}
+              :uberjar {:aot :all}}
+  :uberjar-merge-with {#"META-INF/services/.*" [slurp str spit]}   ; Awaiting Leiningen 2.3.5 - see https://github.com/technomancy/leiningen/issues/1455
   :uberjar-exclusions [#".*\.disabled"]
   :jar-exclusions     [#".*\.disabled"]
   :main depends.core)
