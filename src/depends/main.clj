@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(ns depends.core
+(ns depends.main
   (:require [clojure.string        :as s]
             [clojure.tools.logging :as log]
             [clojure.data.json     :as json]
