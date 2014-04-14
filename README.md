@@ -92,6 +92,8 @@ TODO: provide more detailed usage instructions for the library.
 
 [![Build Status](https://travis-ci.org/pmonks/depends.png?branch=master)](https://travis-ci.org/pmonks/depends.png)
 
+[![endorse](https://api.coderwall.com/pmonks/endorsecount.png)](https://coderwall.com/pmonks)
+
 ## License
 
 Copyright © 2013,2014 Peter Monks (pmonks@gmail.com)
