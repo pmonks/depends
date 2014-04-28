@@ -43,11 +43,11 @@
 
 (defn- write-edges!
   "Writes the edges of the graph into a Neo4J database. Returns nil."
-  [neo4j-nodes edges]
+  [neo4j-connection neo4j-nodes edges]
   (let [name-id-map (zipmap (map #(:name (:data %)) neo4j-nodes) (map :id neo4j-nodes))
         ops         (map #(edge-to-relationship-op name-id-map %) (sort-by :id edges))
         batches     (partition-all batch-size ops)]
-    (doall (map nb/perform batches))
+    (doall (map #(nb/perform neo4j-connection %) batches))
     nil))
 
 (defn write-dependencies!
@@ -55,13 +55,12 @@
   ([dependencies] (write-dependencies! default-neo4j-coords dependencies))
   ([neo4j-coords dependencies]
     (log/info (str "Connecting to Neo4J server " neo4j-coords "..."))
-    (nr/connect! neo4j-coords)
-
     (log/info (str "Writing " (count (first dependencies)) " nodes to Neo4J..."))
-    (let [nodes       (first  dependencies)
-          edges       (second dependencies)
-          batches     (partition-all batch-size nodes)
-          neo4j-nodes (doall (apply concat (map #(nn/create-batch (map strip-nils %)) batches)))]
+    (let [neo4j-connection (nr/connect neo4j-coords)
+          nodes            (first  dependencies)
+          edges            (second dependencies)
+          batches          (partition-all batch-size nodes)
+          neo4j-nodes      (doall (apply concat (map #(nn/create-batch neo4j-connection (map strip-nils %)) batches)))]
       (log/info (str "Writing " (count edges) " edges to Neo4J..."))
-      (write-edges! neo4j-nodes edges)
+      (write-edges! neo4j-connection neo4j-nodes edges)
       nil)))

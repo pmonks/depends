@@ -9,7 +9,7 @@
 ; Contributors:
 ;    Peter Monks - initial implementation
 
-(defproject org.clojars.pmonks/depends "0.3.0-SNAPSHOT"
+(defproject org.clojars.pmonks/depends "0.3.0"
   :description      "Reads dependency information from compiled .class files."
   :url              "https://github.com/pmonks/depends"
   :license          {:name "Eclipse Public License"
@@ -21,7 +21,7 @@
                   [org.clojure/data.json                        "0.2.4"]
                   [org.clojure/tools.cli                        "0.3.1"]
                   [org.clojure/tools.logging                    "0.2.6"]
-                  [clojurewerkz/neocons                         "2.0.1"]
+                  [clojurewerkz/neocons                         "3.0.0-rc1"]
                   [ch.qos.logback/logback-classic               "1.1.2"]
                   [io.aviso/pretty                              "0.1.10"]
                   [org.ow2.asm/asm                              "5.0.2"]
