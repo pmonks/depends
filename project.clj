@@ -33,7 +33,7 @@
                   [net.java.truecommons/truecommons-key-disable "2.3.4"]
                 ]
   :profiles {:dev {:dependencies [[midje      "1.6.3"]]
-                   :plugins      [[lein-midje "3.1.1"]]}   ; Don't remove this or travis-ci will assplode!
+                   :plugins      [[lein-midje "3.1.3"]]}   ; Don't remove this or travis-ci will assplode!
               :uberjar {:aot :all}}
   :uberjar-merge-with {#"META-INF/services/.*" [slurp str spit]}   ; Awaiting Leiningen 2.3.5 - see https://github.com/technomancy/leiningen/issues/1455
   :uberjar-exclusions [#".*\.disabled"]
