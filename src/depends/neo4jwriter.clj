@@ -51,7 +51,7 @@
     nil))
 
 (defn write-dependencies!
-  "Writes class dependencies into a Neo4J database. Returns nil."
+  "Writes class dependencies into a Neo4J database. Returns the Neo4J connection used to do so."
   ([dependencies] (write-dependencies! default-neo4j-coords dependencies))
   ([neo4j-coords dependencies]
     (log/info (str "Connecting to Neo4J server " neo4j-coords "..."))
@@ -63,4 +63,4 @@
           neo4j-nodes      (doall (apply concat (map #(nn/create-batch neo4j-connection (map strip-nils %)) batches)))]
       (log/info (str "Writing " (count edges) " edges to Neo4J..."))
       (write-edges! neo4j-connection neo4j-nodes edges)
-      nil)))
+      neo4j-connection)))
