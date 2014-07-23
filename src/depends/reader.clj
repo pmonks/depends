@@ -236,11 +236,6 @@
         (conj dependencies (create-dependency class-name fixed-exception-type :uses)))
     ]))
 
-
-(defn- class-of-first
-  [& args]
-  (class (first args)))
-
 (defn- build-class-info-for-missing-dependency
   "Constructs a class-info for the given fully qualified type name if it doesn't already exist in
    class-infos, or nil otherwise."
@@ -289,7 +284,7 @@
   Notes:
    * Keys in the first map may have empty or nil values.
    * Each source/target pair may appear more than once in the relationship set, albeit with a different relationship type each time."
-  class-of-first)
+  #(class (first %&)))
 
 (defmethod class-info java.io.InputStream
   ([^java.io.InputStream class-input-stream] (class-info class-input-stream nil))
