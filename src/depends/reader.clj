@@ -370,9 +370,10 @@
   (.setArchiveDetector (net.java.truevfs.access.TConfig/current)
                        (net.java.truevfs.access.TArchiveDetector. "zip|jar|war|ear|amp"
                                                                   (net.java.truevfs.comp.zipdriver.ZipDriver.)))
-  (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)]
-    (if (.isDirectory tfile-or-directory)
-      (let [listing             (file-seq tfile-or-directory)  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
+  (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)
+        is-directory?      (.isDirectory tfile-or-directory)]
+    (if is-directory?
+      (let [listing             (doall (file-seq tfile-or-directory))  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
             class-files         (filter #(and (.canRead ^java.io.File %)
                                               (.isFile ^java.io.File %)
                                               (.endsWith ^String (.getName ^java.io.File %) ".class"))
@@ -382,4 +383,3 @@
             merged-dependencies (reduce set/union (map second class-files-info))]
         [(into merged-info (class-info-for-missing-dependencies merged-dependencies)) merged-dependencies])
       (class-info tfile-or-directory (.getPath tfile-or-directory)))))
-
