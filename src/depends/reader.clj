@@ -373,7 +373,10 @@
   (let [tfile-or-directory (net.java.truevfs.access.TFile. file-or-directory)
         is-directory?      (.isDirectory tfile-or-directory)]
     (if is-directory?
-      (let [listing             (doall (file-seq tfile-or-directory))  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
+      (let [listing             (try
+                                  (doall (file-seq tfile-or-directory))  ; Note: this handles recursion into sub-archives / sub-sub-archives etc. for us
+                                  (catch Exception e
+                                    (throw (Exception. (str "Unexpected exception while scanning " file-or-directory ". Possibly a corrupted archive?") e))))
             class-files         (filter #(and (.canRead ^java.io.File %)
                                               (.isFile ^java.io.File %)
                                               (.endsWith ^String (.getName ^java.io.File %) ".class"))
