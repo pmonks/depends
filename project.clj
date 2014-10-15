@@ -20,7 +20,7 @@
                   [org.clojure/clojure                          "1.6.0"]
                   [org.clojure/data.json                        "0.2.5"]
                   [org.clojure/tools.cli                        "0.3.1"]
-                  [org.clojure/tools.logging                    "0.3.0"]
+                  [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.0.0"]
                   [ch.qos.logback/logback-classic               "1.1.2"]
                   [io.aviso/pretty                              "0.1.12"]
