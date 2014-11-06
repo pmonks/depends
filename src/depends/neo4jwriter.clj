@@ -60,7 +60,7 @@
           nodes            (first  dependencies)
           edges            (second dependencies)
           batches          (partition-all batch-size nodes)
-          neo4j-nodes      (doall (apply concat (map #(nn/create-batch neo4j-connection (map strip-nils %)) batches)))]
+          neo4j-nodes      (doall (mapcat #(nn/create-batch neo4j-connection (map strip-nils %)) batches))]
       (log/info (str "Writing " (count edges) " edges to Neo4J..."))
       (write-edges! neo4j-connection neo4j-nodes edges)
       neo4j-connection)))

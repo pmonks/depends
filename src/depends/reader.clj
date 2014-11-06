@@ -56,11 +56,10 @@
 
 (defn- determine-type-name
   [^String s]
-  (if (or (nil? s) (= 0 (.length (s/trim s))))
-    nil
+  (when-not (or (nil? s) (zero? (.length (s/trim s))))
     (if-let [matches (re-matches type-name-regex (s/trim s))]
       (let [[_ ^String descriptor ^String type-name] matches]
-        (if (or (= 0 (.length (s/trim descriptor))) (= "L" (s/trim descriptor)))
+        (if (or (zero? (.length (s/trim descriptor))) (= "L" (s/trim descriptor)))
           (s/replace (s/replace (s/trim type-name) \/ \.) "[]" "")       ; type
           (get type-codes-to-names (first (seq (s/trim descriptor))))))  ; primitive
       (throw (Exception. (str "Invalid type name or descriptor: " s))))))
@@ -76,8 +75,7 @@
 (defn split-fqtypename
   "Returns a vector of two elements - the first is the FQ package of the type, the second the type name."
   [^String fqtypename]
-  (if (nil? fqtypename)
-    nil
+  (when-not (nil? fqtypename)
     (let [split-index (.lastIndexOf fqtypename ".")]
       (if (= -1 split-index)   ; fqtypename doesn't have a package e.g. it's a primitive
         [nil fqtypename]
@@ -240,7 +238,7 @@
   "Constructs a class-info for the given fully qualified type name if it doesn't already exist in
    class-infos, or nil otherwise."
   [fqtypename]
-  (let [[package typename] (split-fqtypename fqtypename)]    
+  (let [[package typename] (split-fqtypename fqtypename)]
     {
       :name     fqtypename
       :package  package

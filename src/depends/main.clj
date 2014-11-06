@@ -45,22 +45,18 @@
 
           (log/info (str "Calculating dependencies from " source "..."))
           (let [dependencies (dr/classes-info source)]
-            (if edn
-              (do
-                (log/info (str "Writing dependencies to stdout as EDN..."))
-                (pprint dependencies)))   ; Is this the right way to emit EDN?
-            (if json
-              (do
-                (log/info (str "Writing dependencies to stdout as JSON..."))
-                (json/pprint dependencies :escape-unicode false)))
-            (if neo4j-coords
-              (do
-                (log/info (str "Writing dependencies to Neo4J..."))
-                (neo/write-dependencies! neo4j-coords dependencies)))
-;              (if svg
-;                (do
-;                  (log/info (str "Writing dependencies to Neo4J..."))
-;                  (svg/write-dependencies dependencies)))
+            (when edn
+              (log/info (str "Writing dependencies to stdout as EDN..."))
+              (pprint dependencies))   ; Is this the right way to emit EDN?
+            (when json
+              (log/info (str "Writing dependencies to stdout as JSON..."))
+              (json/pprint dependencies :escape-unicode false))
+            (when neo4j-coords
+              (log/info (str "Writing dependencies to Neo4J..."))
+              (neo/write-dependencies! neo4j-coords dependencies))
+;              (when svg
+;                (log/info (str "Writing dependencies to Neo4J..."))
+;                (svg/write-dependencies dependencies))
             (log/info "Complete.")
             nil))))
     (catch Exception e
