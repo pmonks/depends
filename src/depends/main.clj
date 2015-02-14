@@ -25,7 +25,7 @@
 (defn -main
   "Calculate class file(s) dependencies from the command line."
   [& args]
-  (try
+;  (try
     (let [[options args banner] (cli args
                                      ["-j" "--json"  "Write JSON to stdout"                :default false :flag true]
                                      ["-e" "--edn"   "Write EDN to stdout"                 :default false :flag true]
@@ -59,6 +59,7 @@
 ;                (svg/write-dependencies dependencies))
             (log/info "Complete.")
             nil))))
-    (catch Exception e
-      (log/error e)
-      (println (aviso/format-exception e)))))
+;    (catch Exception e
+;      (log/error e)
+;      (println (aviso/format-exception e))))
+      )

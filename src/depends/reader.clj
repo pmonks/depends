@@ -18,13 +18,14 @@
 (def ^:private version-name-map
   "Map of class version numbers to human readable equivalent."
   {
-    (org.objectweb.asm.Opcodes/V1_1) "1.1",
-    (org.objectweb.asm.Opcodes/V1_2) "1.2",
-    (org.objectweb.asm.Opcodes/V1_3) "1.3",
-    (org.objectweb.asm.Opcodes/V1_4) "1.4",
-    (org.objectweb.asm.Opcodes/V1_5) "1.5",
-    (org.objectweb.asm.Opcodes/V1_6) "1.6",
+    (org.objectweb.asm.Opcodes/V1_1) "1.1"
+    (org.objectweb.asm.Opcodes/V1_2) "1.2"
+    (org.objectweb.asm.Opcodes/V1_3) "1.3"
+    (org.objectweb.asm.Opcodes/V1_4) "1.4"
+    (org.objectweb.asm.Opcodes/V1_5) "1.5"
+    (org.objectweb.asm.Opcodes/V1_6) "1.6"
     (org.objectweb.asm.Opcodes/V1_7) "1.7"
+;    (org.objectweb.asm.Opcodes/V1_8) "1.8"     ; Only once Clojure embeds ASM 5.0+, or allows us to use our own version
   })
 
 (def ^:private type-codes-to-names
@@ -188,24 +189,25 @@
     ]))
 
 (defn- visit-method-call
-  [class-info opcode owner name ^String desc itf]
-  (let [info              (first class-info)
-        class-name        (:name info)
-        dependencies      (second class-info)
-        fixed-method-type (determine-type-name owner)
-        argument-types    (map #(determine-type-name (.getClassName ^org.objectweb.asm.Type %)) (org.objectweb.asm.Type/getArgumentTypes desc))
-        return-type       (determine-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
-    (assert (not (xor owner fixed-method-type)) (str "owner=" owner ", fixed-method-type=" fixed-method-type))  ; Check that ASM doesn't f up the method type descriptor
-    (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
-    [
-      info
-      (if (or (nil? fixed-method-type)
-              (= fixed-method-type class-name))
-        dependencies
-        (into dependencies (conj (create-dependencies class-name argument-types    :uses)
-                                 (create-dependency   class-name return-type       :uses)
-                                 (create-dependency   class-name fixed-method-type :uses))))
-    ]))
+  ([class-info opcode owner name desc] (visit-method-call class-info opcode owner name desc false))    ; ASM v4
+  ([class-info opcode owner name ^String desc itf]                                                     ; ASM v5
+   (let [info              (first class-info)
+         class-name        (:name info)
+         dependencies      (second class-info)
+         fixed-method-type (determine-type-name owner)
+         argument-types    (map #(determine-type-name (.getClassName ^org.objectweb.asm.Type %)) (org.objectweb.asm.Type/getArgumentTypes desc))
+         return-type       (determine-type-name (.getClassName (org.objectweb.asm.Type/getReturnType desc)))]
+     (assert (not (xor owner fixed-method-type)) (str "owner=" owner ", fixed-method-type=" fixed-method-type))  ; Check that ASM doesn't f up the method type descriptor
+     (assert (not (xor desc return-type)) (str "desc=" desc ", return-type=" return-type))  ; Check that ASM doesn't f up the return type descriptor
+     [
+       info
+       (if (or (nil? fixed-method-type)
+               (= fixed-method-type class-name))
+         dependencies
+         (into dependencies (conj (create-dependencies class-name argument-types    :uses)
+                                  (create-dependency   class-name return-type       :uses)
+                                  (create-dependency   class-name fixed-method-type :uses))))
+     ])))
 
 (defn- visit-field-usage
   [class-info opcode owner name desc]
@@ -305,8 +307,10 @@
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visitLocalVariable [local-variable-name desc signature start end index]
                                      (swap! result visit-local-variable local-variable-name desc signature start end index))
-                                   (visitMethodInsn [opcode owner name desc itf]
-                                     (swap! result visit-method-call opcode owner name desc itf))
+                                   (visitMethodInsn [opcode owner name desc]                     ; ASM v4
+                                     (swap! result visit-method-call opcode owner name desc))
+;                                   (visitMethodInsn [opcode owner name desc itf]                ; ASM v5
+;                                     (swap! result visit-method-call opcode owner name desc itf))
                                    (visitFieldInsn [opcode owner name desc]
                                      (swap! result visit-field-usage opcode owner name desc))
                                    (visitTryCatchBlock [start end handler type]
