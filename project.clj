@@ -18,12 +18,12 @@
   :javac-target     "1.7"
   :dependencies [
                   [org.clojure/clojure                          "1.6.0"]
-                  [org.clojure/data.json                        "0.2.5"]
+                  [org.clojure/data.json                        "0.2.6"]
                   [org.clojure/tools.cli                        "0.3.1"]
                   [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.0.0"]
-                  [ch.qos.logback/logback-classic               "1.1.2"]
-                  [io.aviso/pretty                              "0.1.16"]
+                  [ch.qos.logback/logback-classic               "1.1.3"]
+                  [io.aviso/pretty                              "0.1.17"]
                   [org.ow2.asm/asm                              "4.1"]     ; WARNING: DO NOT CHANGE THIS AS CLOJURE ITSELF EMBEDS ASM 4.1!!!!
                   [net.java.truevfs/truevfs-kernel-impl         "0.10.8"]  ; Ugh TrueVFS' dependencies are crap
                   [net.java.truevfs/truevfs-access              "0.10.8"]
