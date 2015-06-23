@@ -23,14 +23,14 @@
                   [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.0.0"]
                   [ch.qos.logback/logback-classic               "1.1.3"]
-                  [io.aviso/pretty                              "0.1.17"]
+                  [io.aviso/pretty                              "0.1.18"]
                   [org.ow2.asm/asm                              "4.1"]     ; WARNING: DO NOT CHANGE THIS AS CLOJURE ITSELF EMBEDS ASM 4.1!!!!
-                  [net.java.truevfs/truevfs-kernel-impl         "0.10.8"]  ; Ugh TrueVFS' dependencies are crap
-                  [net.java.truevfs/truevfs-access              "0.10.8"]
-                  [net.java.truevfs/truevfs-driver-file         "0.10.8"]
-                  [net.java.truevfs/truevfs-driver-zip          "0.10.8"]
-                  [net.java.truevfs/truevfs-driver-jar          "0.10.8"]
-                  [net.java.truecommons/truecommons-key-disable "2.4"]
+                  [net.java.truevfs/truevfs-kernel-impl         "0.11.0"]  ; Ugh TrueVFS' dependencies are crap
+                  [net.java.truevfs/truevfs-access              "0.11.0"]
+                  [net.java.truevfs/truevfs-driver-file         "0.11.0"]
+                  [net.java.truevfs/truevfs-driver-zip          "0.11.0"]
+                  [net.java.truevfs/truevfs-driver-jar          "0.11.0"]
+                  [net.java.truecommons/truecommons-key-disable "2.5.0"]
                 ]
   :profiles {:dev {:dependencies [[midje      "1.6.3"]]
                    :plugins      [[lein-midje "3.1.3"]]}   ; Don't remove this or travis-ci will assplode!
