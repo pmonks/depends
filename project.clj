@@ -19,7 +19,7 @@
   :dependencies [
                   [org.clojure/clojure                          "1.6.0"]
                   [org.clojure/data.json                        "0.2.6"]
-                  [org.clojure/tools.cli                        "0.3.1"]
+                  [org.clojure/tools.cli                        "0.3.3"]
                   [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.0.0"]
                   [ch.qos.logback/logback-classic               "1.1.3"]
@@ -32,7 +32,7 @@
                   [net.java.truevfs/truevfs-driver-jar          "0.11.0"]
                   [net.java.truecommons/truecommons-key-disable "2.5.0"]
                 ]
-  :profiles {:dev {:dependencies [[midje      "1.6.3"]]
+  :profiles {:dev {:dependencies [[midje      "1.7.0"]]
                    :plugins      [[lein-midje "3.1.3"]]}   ; Don't remove this or travis-ci will assplode!
               :uberjar {:aot :all}}
   :uberjar-exclusions [#".*\.disabled"]
