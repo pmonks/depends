@@ -17,13 +17,13 @@
   :min-lein-version "2.5.0"
   :javac-target     "1.7"
   :dependencies [
-                  [org.clojure/clojure                          "1.6.0"]
+                  [org.clojure/clojure                          "1.8.0"]
                   [org.clojure/data.json                        "0.2.6"]
                   [org.clojure/tools.cli                        "0.3.3"]
                   [org.clojure/tools.logging                    "0.3.1"]
-                  [clojurewerkz/neocons                         "3.0.0"]
+                  [clojurewerkz/neocons                         "3.1.0"]
                   [ch.qos.logback/logback-classic               "1.1.3"]
-                  [io.aviso/pretty                              "0.1.18"]
+                  [io.aviso/pretty                              "0.1.21"]
                   [org.ow2.asm/asm                              "4.1"]     ; WARNING: DO NOT CHANGE THIS AS CLOJURE ITSELF EMBEDS ASM 4.1!!!!
                   [net.java.truevfs/truevfs-kernel-impl         "0.11.0"]  ; Ugh TrueVFS' dependencies are crap
                   [net.java.truevfs/truevfs-access              "0.11.0"]
@@ -32,8 +32,8 @@
                   [net.java.truevfs/truevfs-driver-jar          "0.11.0"]
                   [net.java.truecommons/truecommons-key-disable "2.5.0"]
                 ]
-  :profiles {:dev {:dependencies [[midje      "1.7.0"]]
-                   :plugins      [[lein-midje "3.1.3"]]}   ; Don't remove this or travis-ci will assplode!
+  :profiles {:dev {:dependencies [[midje      "1.8.3"]]
+                   :plugins      [[lein-midje "3.2"]]}   ; Don't remove this or travis-ci will assplode!
               :uberjar {:aot :all}}
   :uberjar-exclusions [#".*\.disabled"]
   :jar-exclusions     [#".*\.disabled"]
