@@ -1,4 +1,8 @@
+[![Build Status](https://travis-ci.org/pmonks/depends.svg?branch=master)](https://travis-ci.org/pmonks/depends)
+[![Dependencies Status](http://jarkeeper.com/pmonks/depends/status.svg)](http://jarkeeper.com/pmonks/depends)
+
 # depends
+
 Reads dependencies from compiled Java code (.class files) and writes them out in a variety of different formats.
 
 Why might that be useful, I hear you ask?
@@ -90,12 +94,10 @@ TODO: provide more detailed usage instructions for the library.
 
 [Bug Tracker](https://github.com/pmonks/depends/issues)
 
-[![Build Status](https://travis-ci.org/pmonks/depends.png?branch=master)](https://travis-ci.org/pmonks/depends.png)
-
 [![endorse](https://api.coderwall.com/pmonks/endorsecount.png)](https://coderwall.com/pmonks)
 
 ## License
 
-Copyright © 2013,2014 Peter Monks (pmonks@gmail.com)
+Copyright © 2013-2016 Peter Monks (pmonks@gmail.com)
 
 Distributed under the [Eclipse Public License](http://www.eclipse.org/legal/epl-v10.html) either version 1.0 or (at your option) any later version.
