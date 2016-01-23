@@ -25,7 +25,7 @@
     (org.objectweb.asm.Opcodes/V1_5) "1.5"
     (org.objectweb.asm.Opcodes/V1_6) "1.6"
     (org.objectweb.asm.Opcodes/V1_7) "1.7"
-;    (org.objectweb.asm.Opcodes/V1_8) "1.8"     ; Only once Clojure embeds ASM 5.0+, or allows us to use our own version
+    (org.objectweb.asm.Opcodes/V1_8) "1.8"
   })
 
 (def ^:private type-codes-to-names
@@ -307,10 +307,10 @@
                                    [org.objectweb.asm.Opcodes/ASM4]
                                    (visitLocalVariable [local-variable-name desc signature start end index]
                                      (swap! result visit-local-variable local-variable-name desc signature start end index))
-                                   (visitMethodInsn [opcode owner name desc]                     ; ASM v4
-                                     (swap! result visit-method-call opcode owner name desc))
-;                                   (visitMethodInsn [opcode owner name desc itf]                ; ASM v5
-;                                     (swap! result visit-method-call opcode owner name desc itf))
+;                                   (visitMethodInsn [opcode owner name desc]                     ; ASM v4
+;                                     (swap! result visit-method-call opcode owner name desc))
+                                   (visitMethodInsn [opcode owner name desc itf]                ; ASM v5
+                                     (swap! result visit-method-call opcode owner name desc itf))
                                    (visitFieldInsn [opcode owner name desc]
                                      (swap! result visit-field-usage opcode owner name desc))
                                    (visitTryCatchBlock [start end handler type]

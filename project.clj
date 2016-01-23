@@ -1,5 +1,5 @@
 ;
-; Copyright © 2014 Peter Monks (pmonks@gmail.com)
+; Copyright © 2014-2016 Peter Monks (pmonks@gmail.com)
 ;
 ; All rights reserved. This program and the accompanying materials
 ; are made available under the terms of the Eclipse Public License v1.0
@@ -24,7 +24,7 @@
                   [clojurewerkz/neocons                         "3.1.0"]
                   [ch.qos.logback/logback-classic               "1.1.3"]
                   [io.aviso/pretty                              "0.1.21"]
-                  [org.ow2.asm/asm                              "4.1"]     ; WARNING: DO NOT CHANGE THIS AS CLOJURE ITSELF EMBEDS ASM 4.1!!!!
+                  [org.ow2.asm/asm                              "5.0.4"]
                   [net.java.truevfs/truevfs-kernel-impl         "0.11.0"]  ; Ugh TrueVFS' dependencies are crap
                   [net.java.truevfs/truevfs-access              "0.11.0"]
                   [net.java.truevfs/truevfs-driver-file         "0.11.0"]
