@@ -7,28 +7,43 @@ Reads dependencies from compiled Java code (.class files) and writes them out in
 
 Why might that be useful, I hear you ask?
 
-Welp the personal driver for this project was to support some work I was doing to validate 3rd party extensions to an open source Java product.  Basically I needed to make sure that that 3rd party code didn't use the product's private APIs, didn't attempt threading, didn't use Process.exec() or System.out/err, didn't employ dodgy ClassLoader tricks etc. etc.  I started out using grep but quickly ran into a couple of walls, including: a) not necessarily having access to the source code for these extensions; b) that approach requires manual followup due to Java's rather complex aliasing rules (e.g. is the code "new Thread()" referring to java.lang.Thread or org.sewing.Thread??).
+Welp the personal driver for this project was to support some work I was doing to validate 3rd party extensions
+to an open source Java product.  Basically I needed to make sure that that 3rd party code didn't use the product's
+private APIs, didn't attempt threading, didn't use ```Process.exec()``` or ```System.out/err```, didn't employ
+dodgy ```ClassLoader``` tricks etc. etc.
 
-To do this I'm jamming the output into Neo4J then running a couple of Cypher queries to determine if the code violates any of these rules.
+I started out using grep but quickly ran into a couple of walls, including:
+ 1. not necessarily having access to the source code for these extensions;
+ 2. that approach requires manual followup due to Java's rather complex aliasing rules (e.g. is the code
+    ```new Thread()``` referring to ```java.lang.Thread``` or ```org.sewing.Thread```??).
+
+To do this I'm jamming the output into Neo4J then running a couple of Cypher queries to determine if the code
+violates any of these rules.
 
 Other possible uses of the data this tool produces include:
  1. Visualising the dependencies of a code base (particularly one you're unfamiliar with)
- 2. Calculating certains kinds of software quality metrics (note however that tools like Structure101 already do this kind of thing)
+ 2. Calculating certains kinds of software quality metrics (note however that tools like Structure101 already
+    do this kind of thing)
  3. Faffing by looking at shiny graphy baubles
 
 Notes:
- * The tool reads dependencies that are present in the compiled .class files.  Amongst other things this means that types referred to only via generics (e.g. Map&lt;ClassA, ClassB&gt;) won't be listed in the dependency graph.
- * I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre) practices.  Any comments, feedback, criticism is welcome (email address below).
+ * The tool reads dependencies that are present in the compiled .class files.  Amongst other things this means
+   that types referred to only via generics (e.g. ```Map<ClassA, ClassB>```) won't be listed in the
+   dependency graph.
+ * I still consider myself an utter Clojure n00b, so don't look at this code for best (or even mediocre)
+   practices.  Any comments, feedback, criticism is welcome (email address below).
 
 ## Getting the bits
 
 ### Dependencies
- * [Oracle JDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (one of the libraries used by depends requires JDK 1.7 or newer, and depends is tested on Oracle JDKs only)
- * [Clojure v1.5+](http://clojure.org/downloads)
- * [Leiningen v2.0+](http://leiningen.org/#install)
- * [Neo4j v2.0+](http://www.neo4j.org/download) (optional - only required if you intend to send output to a Neo4J database)
+ * [Oracle JDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (one of the libraries
+   used by depends requires JDK 1.7 or newer, and depends is tested on Oracle JDKs only)
+ * [Leiningen v2.5+](http://leiningen.org/#install)
+ * [Neo4j v2.0+](http://www.neo4j.org/download) (optional - only required if you intend to send output to a
+   Neo4J database)
 
-Note: these dependencies should be installed via your OS package manager, where possible.  On Mac OSX, I strongly recommend [Homebrew](http://brew.sh/).
+Note: these dependencies should be installed via your OS package manager, where possible.  On Mac OSX, I
+strongly recommend [Homebrew](http://brew.sh/).
 
 ### Command line usage
 
