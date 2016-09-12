@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/pmonks/depends.svg?branch=master)](https://travis-ci.org/pmonks/depends)
+[![Open Issues](https://img.shields.io/github/issues/pmonks/depends.svg)](https://github.com/pmonks/depends/issues)
+[![License](https://img.shields.io/github/license/pmonks/depends.svg)](https://github.com/pmonks/depends/blob/master/LICENSE)
 [![Dependencies Status](http://jarkeeper.com/pmonks/depends/status.svg)](http://jarkeeper.com/pmonks/depends)
 
 # depends
