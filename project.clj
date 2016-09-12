@@ -19,21 +19,21 @@
   :dependencies [
                   [org.clojure/clojure                          "1.8.0"]
                   [org.clojure/data.json                        "0.2.6"]
-                  [org.clojure/tools.cli                        "0.3.3"]
+                  [org.clojure/tools.cli                        "0.3.5"]
                   [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.1.0"]
-                  [ch.qos.logback/logback-classic               "1.1.6"]
-                  [io.aviso/pretty                              "0.1.24"]
+                  [ch.qos.logback/logback-classic               "1.1.7"]
+                  [io.aviso/pretty                              "0.1.30"]
                   [org.ow2.asm/asm                              "5.1"]
-                  [net.java.truevfs/truevfs-kernel-impl         "0.11.0"]  ; Ugh TrueVFS' dependencies are crap
-                  [net.java.truevfs/truevfs-access              "0.11.0"]
-                  [net.java.truevfs/truevfs-driver-file         "0.11.0"]
-                  [net.java.truevfs/truevfs-driver-zip          "0.11.0"]
-                  [net.java.truevfs/truevfs-driver-jar          "0.11.0"]
+                  [net.java.truevfs/truevfs-kernel-impl         "0.11.1"]  ; Ugh TrueVFS' dependencies are crap
+                  [net.java.truevfs/truevfs-access              "0.11.1"]
+                  [net.java.truevfs/truevfs-driver-file         "0.11.1"]
+                  [net.java.truevfs/truevfs-driver-zip          "0.11.1"]
+                  [net.java.truevfs/truevfs-driver-jar          "0.11.1"]
                   [net.java.truecommons/truecommons-key-disable "2.5.0"]
                 ]
   :profiles {:dev {:dependencies [[midje      "1.8.3"]]
-                   :plugins      [[lein-midje "3.2"]]}   ; Don't remove this or travis-ci will assplode!
+                   :plugins      [[lein-midje "3.2.1"]]}   ; Don't remove this or travis-ci will assplode!
               :uberjar {:aot :all}}
   :uberjar-exclusions [#".*\.disabled"]
   :jar-exclusions     [#".*\.disabled"]
