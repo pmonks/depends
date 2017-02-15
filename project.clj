@@ -22,9 +22,9 @@
                   [org.clojure/tools.cli                        "0.3.5"]
                   [org.clojure/tools.logging                    "0.3.1"]
                   [clojurewerkz/neocons                         "3.1.0"]
-                  [ch.qos.logback/logback-classic               "1.1.7"]
-                  [io.aviso/pretty                              "0.1.30"]
-                  [org.ow2.asm/asm                              "5.1"]
+                  [ch.qos.logback/logback-classic               "1.2.1"]
+                  [io.aviso/pretty                              "0.1.33"]
+                  [org.ow2.asm/asm                              "5.2"]
                   [net.java.truevfs/truevfs-kernel-impl         "0.11.1"]  ; Ugh TrueVFS' dependencies are crap
                   [net.java.truevfs/truevfs-access              "0.11.1"]
                   [net.java.truevfs/truevfs-driver-file         "0.11.1"]
