@@ -20,10 +20,10 @@
                   [org.clojure/clojure                          "1.8.0"]
                   [org.clojure/data.json                        "0.2.6"]
                   [org.clojure/tools.cli                        "0.3.5"]
-                  [org.clojure/tools.logging                    "0.3.1"]
+                  [org.clojure/tools.logging                    "0.4.0"]
                   [clojurewerkz/neocons                         "3.1.0"]
-                  [ch.qos.logback/logback-classic               "1.2.1"]
-                  [io.aviso/pretty                              "0.1.33"]
+                  [ch.qos.logback/logback-classic               "1.2.3"]
+                  [io.aviso/pretty                              "0.1.34"]
                   [org.ow2.asm/asm                              "5.2"]
                   [net.java.truevfs/truevfs-kernel-impl         "0.11.1"]  ; Ugh TrueVFS' dependencies are crap
                   [net.java.truevfs/truevfs-access              "0.11.1"]
