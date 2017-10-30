@@ -2,7 +2,7 @@ language: clojure
 sudo: false
 jdk:
   - oraclejdk8
-  - oraclejdk9
+#  - oraclejdk9    # Not yet supported by TrueVFS
 lein: 2.8.1
 
 script: lein do check, midje
