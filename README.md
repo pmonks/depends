@@ -115,6 +115,6 @@ TODO: provide more detailed usage instructions for the library.
 
 ## License
 
-Copyright © 2013-2016 Peter Monks (pmonks@gmail.com)
+Copyright © 2013 Peter Monks (pmonks@gmail.com)
 
 Distributed under the [Eclipse Public License](http://www.eclipse.org/legal/epl-v10.html) either version 1.0 or (at your option) any later version.
