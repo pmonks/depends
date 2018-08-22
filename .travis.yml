@@ -1,9 +1,9 @@
-language: clojure
 sudo: false
+language: clojure
+lein: 2.8.1
+
 jdk:
   - oraclejdk8
-  - oraclejdk9
   - oraclejdk10
-lein: 2.8.1
 
 script: lein do check, midje
