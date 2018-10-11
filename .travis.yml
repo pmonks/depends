@@ -4,6 +4,6 @@ lein: 2.8.1
 
 jdk:
   - oraclejdk8
-  - oraclejdk10
+  - openjdk11   # Don't fall for Oracle's trick: https://blog.joda.org/2018/09/do-not-fall-into-oracles-java-11-trap.html
 
 script: lein do check, midje
